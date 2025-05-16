@@ -6,7 +6,10 @@
         xmlns:local="clr-namespace:GeminiTranslateExplain"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
+    <Window.DataContext>
+        <local:MainWindowViewModel/>
+    </Window.DataContext>
 
+    <Grid>
     </Grid>
 </Window>
