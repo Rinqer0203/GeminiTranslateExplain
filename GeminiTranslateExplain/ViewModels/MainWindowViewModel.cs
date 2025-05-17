@@ -44,7 +44,13 @@ namespace GeminiTranslateExplain
 
                 await _client.StreamGenerateContentAsync(prompt, SelectedGeminiModelName, progress);
             });
+        }
 
+        [RelayCommand]
+        private void SendQuestion()
+        {
+            //とりあえず音鳴らす
+            System.Media.SystemSounds.Beep.Play();
         }
     }
 }

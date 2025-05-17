@@ -19,6 +19,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="50" />
             <RowDefinition />
+            <RowDefinition Height="100" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
@@ -79,7 +80,6 @@
                 VerticalContentAlignment="Top"
                 materialDesign:HintAssist.Hint="翻訳するテキストを入力してください"
                 AcceptsReturn="True"
-                Background="{DynamicResource MaterialDesignDarkSeparatorBackground}"
                 FontSize="16"
                 Text="{Binding SourceText}"
                 TextAlignment="Left"
@@ -101,13 +101,55 @@
                 VerticalContentAlignment="Top"
                 materialDesign:HintAssist.Hint="翻訳結果"
                 AcceptsReturn="True"
-                Background="{DynamicResource MaterialDesignDarkSeparatorBackground}"
                 FontSize="16"
                 IsReadOnly="True"
                 Text="{Binding TranslatedText}"
                 TextAlignment="Left"
                 TextWrapping="Wrap" />
         </Border>
+
+        <Border
+            Grid.Row="2"
+            Grid.Column="0"
+            Grid.ColumnSpan="2"
+            Margin="0,5,0,0"
+            BorderBrush="Gray"
+            BorderThickness="2"
+            CornerRadius="4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="50" />
+                </Grid.ColumnDefinitions>
+                <TextBox
+                    Grid.Column="0"
+                    Padding="10"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    VerticalContentAlignment="Top"
+                    materialDesign:HintAssist.Hint="追加で質問"
+                    AcceptsReturn="True"
+                    FontSize="16"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                    Text="{Binding AdditionalQuestion}"
+                    TextAlignment="Left"
+                    TextWrapping="Wrap" />
+                <Button
+                    Grid.Column="1"
+                    Width="40"
+                    Height="40"
+                    Command="{Binding SendQuestionCommand}"
+                    Style="{StaticResource MaterialDesignIconForegroundButton}">
+                    <materialDesign:PackIcon
+                        Width="22"
+                        Height="22"
+                        Kind="SendVariant" />
+                </Button>
+
+            </Grid>
+
+        </Border>
+
 
     </Grid>
 
