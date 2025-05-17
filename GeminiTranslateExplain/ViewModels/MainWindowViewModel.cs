@@ -32,7 +32,9 @@ namespace GeminiTranslateExplain
         {
             Task.Run(async () =>
             {
-                var prompt = $"次の文章を日本語に翻訳してください:\n{SourceText}";
+                var prompt = $"以下の英文を、読みやすく正確な日本語に翻訳してください。" +
+                $"\n出力形式はプレーンテキスト（Markdownや記法のない普通の文章）とし、装飾やコード記法、リンク形式などは一切使用しないでください。" +
+                $"\n【翻訳対象】\n{SourceText}";
 
                 StringBuilder sb = new StringBuilder();
                 var progress = new Progress<string>(text =>
