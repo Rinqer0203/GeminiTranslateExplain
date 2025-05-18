@@ -33,6 +33,8 @@
             Command="{Binding TranslateTextCommand}"
             Content="Translate" />
 
+        <!--  Command="{Binding TestCommand}"  -->
+        <!--  Command="{Binding TranslateTextCommand}"  -->
         <ComboBox
             Grid.Row="0"
             Grid.Column="1"

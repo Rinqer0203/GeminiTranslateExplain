@@ -7,72 +7,76 @@ namespace GeminiTranslateExplain
 {
     internal class GeminiApiClient
     {
-        private readonly HttpClient _httpClient;
+        public record Part(string Text);
+        public record SystemInstruction(Part[] Parts);
+        public record Content(string Role, Part[] Parts);
+        public record RequestBody(SystemInstruction System_instruction, Content[] Contents);
+
+        private readonly HttpClient _httpClient = new();
         private readonly string _apiKey;
 
-        internal GeminiApiClient(HttpClient httpClient, string apiKey)
+        internal GeminiApiClient(string apiKey)
         {
-            _httpClient = httpClient;
+            _httpClient.BaseAddress = new Uri("https://generativelanguage.googleapis.com/v1beta/");
             _apiKey = apiKey;
         }
 
-        internal async Task<string> GenerateContentAsync(string prompt, GeminiModel model)
+        private static RequestBody CreateRequestBody(string instruction, string prompt)
         {
-            var requestBody = new
-            {
-                contents = new[]
-                {
-                    new {
-                        parts = new[]
-                        {
-                            new { text = prompt }
-                        }
-                    }
-                }
-            };
-            var apiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{model.Name}:generateContent?key={_apiKey}";
+            return new RequestBody(
+                new SystemInstruction([new Part(instruction)]),
+                [new Content("user", [new Part(prompt)])]
+                );
+        }
 
-            var response = await _httpClient.PostAsJsonAsync(apiUrl, requestBody);
-            if (response.IsSuccessStatusCode)
+        public static RequestBody CreateRequestBody(string instruction, ReadOnlySpan<(string role, string text)> messages)
+        {
+            var contents = new Content[messages.Length];
+            for (int i = 0; i < messages.Length; i++)
             {
-                using var stream = await response.Content.ReadAsStreamAsync();
-                var json = await JsonDocument.ParseAsync(stream);
-                var replyText = json.RootElement
+                var (role, text) = messages[i];
+                contents[i] = new Content(role, [new Part(text)]);
+            }
+
+            return new RequestBody(
+                new SystemInstruction([new Part(instruction)]),
+                contents
+            );
+        }
+
+        private static string? ExtractContentFromJson(string json)
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(json);
+                return doc.RootElement
                     .GetProperty("candidates")[0]
                     .GetProperty("content")
                     .GetProperty("parts")[0]
                     .GetProperty("text")
                     .GetString();
-                return replyText ?? "(空のレスポンス)";
             }
-            return "(エラー: " + response.StatusCode + ")";
+            catch (Exception ex)
+            {
+                return $"(JSONパースエラー: {ex.Message})";
+            }
         }
 
-
-        internal async Task StreamGenerateContentAsync(string prompt, GeminiModel model, IProgress<string> progress)
+        internal async Task StreamGenerateContentAsync(string instruction, RequestBody body,
+            GeminiModel model, IProgress<string> progress)
         {
-            var apiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{model.Name}:streamGenerateContent?alt=sse&key={_apiKey}";
+            var path = $"models/{model.Name}:streamGenerateContent?alt=sse&key={_apiKey}";
 
-            using var request = new HttpRequestMessage(HttpMethod.Post, apiUrl);
+            using var request = new HttpRequestMessage(HttpMethod.Post, path);
             request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/event-stream"));
-            request.Content = JsonContent.Create(new
-            {
-                contents = new[]
-                {
-                    new
-                    {
-                        parts = new[]
-                        {
-                            new { text = prompt }
-                        }
-                    }
-                }
-            });
+
+            request.Content = JsonContent.Create(body);
 
             using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
             if (!response.IsSuccessStatusCode)
             {
-                progress.Report($"(エラー: {response.StatusCode})");
+                var errorDetails = await response.Content.ReadAsStringAsync();
+                progress.Report($"(エラー: {response.StatusCode})\n{errorDetails}");
                 return;
             }
 
@@ -81,34 +85,19 @@ namespace GeminiTranslateExplain
 
             while (!reader.EndOfStream)
             {
-                var line = await reader.ReadLineAsync().ConfigureAwait(false);
-                if (string.IsNullOrWhiteSpace(line) || !line.StartsWith("data:"))
+                var line = await reader.ReadLineAsync();
+                if (string.IsNullOrWhiteSpace(line) || !line.AsSpan().TrimStart().StartsWith("data:".AsSpan()))
                     continue;
 
-                var jsonPart = line.Substring("data:".Length).Trim();
+                var jsonPart = line["data:".Length..].Trim();
                 if (jsonPart == "[DONE]") break;
 
-                try
+                var content = ExtractContentFromJson(jsonPart);
+                if (content != null)
                 {
-                    using var doc = JsonDocument.Parse(jsonPart);
-                    var content = doc.RootElement
-                        .GetProperty("candidates")[0]
-                        .GetProperty("content")
-                        .GetProperty("parts")[0]
-                        .GetProperty("text")
-                        .GetString();
-
-                    if (!string.IsNullOrEmpty(content))
-                    {
-                        progress.Report(content);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    progress.Report($"(JSONパースエラー: {ex.Message})");
+                    progress.Report(content);
                 }
             }
         }
-
     }
 }
