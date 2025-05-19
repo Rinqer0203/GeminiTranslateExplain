@@ -24,7 +24,7 @@ namespace GeminiTranslateExplain
         private readonly StringBuilder _sb = new StringBuilder();
         private readonly List<(string role, string text)> _messages = new(64);
 
-        internal MainWindowViewModel()
+        public MainWindowViewModel()
         {
             AppConfig config = AppConfig.LoadConfigJson();
             _client = new GeminiApiClient(config.ApiKey);
