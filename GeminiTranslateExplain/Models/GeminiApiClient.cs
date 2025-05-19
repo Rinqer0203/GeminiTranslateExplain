@@ -21,14 +21,6 @@ namespace GeminiTranslateExplain
             _apiKey = apiKey;
         }
 
-        private static RequestBody CreateRequestBody(string instruction, string prompt)
-        {
-            return new RequestBody(
-                new SystemInstruction([new Part(instruction)]),
-                [new Content("user", [new Part(prompt)])]
-                );
-        }
-
         public static RequestBody CreateRequestBody(string instruction, ReadOnlySpan<(string role, string text)> messages)
         {
             var contents = new Content[messages.Length];
@@ -62,17 +54,15 @@ namespace GeminiTranslateExplain
             }
         }
 
-        internal async Task StreamGenerateContentAsync(string instruction, RequestBody body,
-            GeminiModel model, IProgress<string> progress)
+        internal async Task StreamGenerateContentAsync(RequestBody body, GeminiModel model, IProgress<string> progress)
         {
             var path = $"models/{model.Name}:streamGenerateContent?alt=sse&key={_apiKey}";
 
             using var request = new HttpRequestMessage(HttpMethod.Post, path);
             request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/event-stream"));
-
             request.Content = JsonContent.Create(body);
 
-            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
                 var errorDetails = await response.Content.ReadAsStringAsync();

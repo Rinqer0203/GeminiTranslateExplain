@@ -33,8 +33,6 @@
             Command="{Binding TranslateTextCommand}"
             Content="Translate" />
 
-        <!--  Command="{Binding TestCommand}"  -->
-        <!--  Command="{Binding TranslateTextCommand}"  -->
         <ComboBox
             Grid.Row="0"
             Grid.Column="1"
@@ -133,9 +131,14 @@
                     AcceptsReturn="True"
                     FontSize="16"
                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                    Text="{Binding AdditionalQuestion}"
+                    Text="{Binding QuestionText, UpdateSourceTrigger=PropertyChanged}"
                     TextAlignment="Left"
-                    TextWrapping="Wrap" />
+                    TextWrapping="Wrap">
+
+                    <TextBox.InputBindings>
+                        <KeyBinding Command="{Binding SendQuestionCommand}" Gesture="Enter" />
+                    </TextBox.InputBindings>
+                </TextBox>
                 <Button
                     Grid.Column="1"
                     Width="40"
