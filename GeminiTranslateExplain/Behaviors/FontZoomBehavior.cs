@@ -1,9 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Input;
 using TextBox = System.Windows.Controls.TextBox;
-{
-
-}
 
 namespace GeminiTranslateExplain
 {
