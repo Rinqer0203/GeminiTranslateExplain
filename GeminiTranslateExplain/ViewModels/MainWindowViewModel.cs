@@ -1,8 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GeminiTranslateExplain.Views;
 using System.Text;
-using System.Windows;
 
 namespace GeminiTranslateExplain
 {
@@ -22,24 +20,21 @@ namespace GeminiTranslateExplain
         [ObservableProperty]
         private string _questionText = string.Empty;
 
+        [ObservableProperty]
+        private bool _useCustomInstruction = false;
+
         private readonly GeminiApiClient _client;
         private readonly StringBuilder _sb = new StringBuilder();
         private readonly List<(string role, string text)> _messages = new(64);
 
         public MainWindowViewModel()
         {
-            AppConfig config = AppConfig.LoadConfigJson();
-            _client = new GeminiApiClient(config.ApiKey);
+            _client = new GeminiApiClient();
         }
 
         [RelayCommand]
         private async Task TranslateText()
         {
-            string instruction = $"以下の英文を、読みやすく正確な日本語に翻訳してください。" +
-            $"\n出力形式はプレーンテキスト（Markdownや記法のない普通の文章）とし、装飾やコード記法、リンク形式などは一切使用しないでください。" +
-            $"\n翻訳対象に単独で現れる固有名詞については、それが何であるかの簡単な説明を追記してください。";
-
-
             var progress = new Progress<string>(text =>
             {
                 _sb.Append(text);
@@ -50,9 +45,9 @@ namespace GeminiTranslateExplain
             _sb.Clear();
             _messages.Clear();
             _messages.Add(("user", SourceText));
-            var body = GeminiApiClient.CreateRequestBody(instruction, _messages.AsSpan());
+            var body = GeminiApiClient.CreateRequestBody(GetSystemInstruction(), _messages.AsSpan());
 
-            await _client.StreamGenerateContentAsync(body, SelectedGeminiModelName, progress);
+            await _client.StreamGenerateContentAsync(AppConfig.Instance.ApiKey, body, SelectedGeminiModelName, progress);
             _messages.Add(("model", TranslatedText));
         }
 
@@ -66,7 +61,7 @@ namespace GeminiTranslateExplain
             }
 
             _messages.Add(("user", QuestionText));
-            var body = GeminiApiClient.CreateRequestBody(QuestionText, _messages.AsSpan());
+            var body = GeminiApiClient.CreateRequestBody(GetSystemInstruction(), _messages.AsSpan());
             QuestionText = string.Empty;
 
             var progress = new Progress<string>(text =>
@@ -77,7 +72,7 @@ namespace GeminiTranslateExplain
             });
 
             _sb.Clear();
-            await _client.StreamGenerateContentAsync(body, SelectedGeminiModelName, progress);
+            await _client.StreamGenerateContentAsync(AppConfig.Instance.ApiKey, body, SelectedGeminiModelName, progress);
             _messages.Add(("model", TranslatedText));
         }
 
@@ -85,19 +80,21 @@ namespace GeminiTranslateExplain
         [RelayCommand]
         private void OpenSettingWindow()
         {
-            // 既に開いているかチェック
-            foreach (Window window in System.Windows.Application.Current.Windows)
-            {
-                if (window is SettingWindow)
-                {
-                    window.Activate(); // 既に開いていればフォーカスを当てる
-                    return;
-                }
-            }
-
-            // 開かれていなければ新しく開く
             var settingWindow = new SettingWindow();
-            settingWindow.Show();
+            settingWindow.Owner = System.Windows.Application.Current.MainWindow;  // 所有者を明示
+            settingWindow.ShowDialog();  // モーダル表示
+        }
+
+        private string GetSystemInstruction()
+        {
+            if (UseCustomInstruction)
+            {
+                return AppConfig.Instance.CustomSystemInstruction;
+            }
+            else
+            {
+                return AppConfig.Instance.SystemInstruction;
+            }
         }
     }
 }

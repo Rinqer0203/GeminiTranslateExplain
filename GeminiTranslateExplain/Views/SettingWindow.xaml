@@ -1,24 +1,78 @@
-﻿<Window x:Class="GeminiTranslateExplain.Views.SettingWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:GeminiTranslateExplain.Views"        
-        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        Style="{StaticResource MaterialDesignWindow}"
-        mc:Ignorable="d"
-        Title="SettingWindow" Height="450" Width="800">
-    <Grid Margin="20">
-        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Width="300">
-            <TextBlock Text="設定" FontSize="20" Margin="0,0,0,20" />
+﻿<Window
+    x:Class="GeminiTranslateExplain.SettingWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:local="clr-namespace:GeminiTranslateExplain"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="SettingWindow"
+    Width="650"
+    Height="450"
+    MinWidth="650"
+    MinHeight="450"
+    Style="{StaticResource MaterialDesignWindow}"
+    mc:Ignorable="d">
 
-            <!-- APIキー入力用のTextBox -->
-            <TextBox 
-                materialDesign:HintAssist.Hint="API Key"
-                materialDesign:TextFieldAssist.DecorationVisibility="Visible"
-                Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                Width="300"
-                Margin="0,0,0,10" />
-        </StackPanel>
+    <Window.DataContext>
+        <local:SettingWindowViewModel />
+    </Window.DataContext>
+
+    <Grid Margin="20">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <TextBlock
+                    Margin="0,0,0,20"
+                    FontSize="20"
+                    Text="設定" />
+
+                <!--  APIキー入力  -->
+                <TextBox
+                    Margin="0,0,0,20"
+                    HorizontalAlignment="Stretch"
+                    materialDesign:HintAssist.Hint="API Key"
+                    materialDesign:TextFieldAssist.DecorationVisibility="Visible"
+                    FontSize="15"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                    Text="{Binding ApiKey}" />
+
+                <!--  システム命令  -->
+                <TextBox
+                    Height="100"
+                    Margin="0,0,0,20"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    VerticalContentAlignment="Top"
+                    local:FontZoomBehavior.IsZoomEnabled="True"
+                    local:SelectAllBehavior.IsSelectAllOnFocusEnabled="True"
+                    materialDesign:HintAssist.Hint="システム命令"
+                    AcceptsReturn="True"
+                    FontSize="15"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                    Text="{Binding SystemInstruction}"
+                    TextAlignment="Left"
+                    TextWrapping="Wrap" />
+
+                <!--  カスタム命令  -->
+                <TextBox
+                    Height="100"
+                    Margin="0,0,0,20"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    VerticalContentAlignment="Top"
+                    local:FontZoomBehavior.IsZoomEnabled="True"
+                    local:SelectAllBehavior.IsSelectAllOnFocusEnabled="True"
+                    materialDesign:HintAssist.Hint="カスタム命令"
+                    AcceptsReturn="True"
+                    FontSize="15"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                    Text="{Binding CustomSystemInstruction}"
+                    TextAlignment="Left"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
+
+
 </Window>

@@ -73,6 +73,7 @@ namespace GeminiTranslateExplain
         {
             _clipboardMonitor?.Dispose();
             _trayManager?.Dispose();
+            AppConfig.Instance.SaveConfigJson();
             base.OnExit(e);
         }
     }

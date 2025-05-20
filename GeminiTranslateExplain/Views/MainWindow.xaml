@@ -28,17 +28,17 @@
 
         <Button
             Grid.Row="0"
-            Width="40"
-            Height="40"
             Grid.Column="0"
+            Width="30"
+            Height="30"
+            Margin="5"
             HorizontalAlignment="Left"
             HorizontalContentAlignment="Center"
-            Margin="5"
-            Style="{StaticResource MaterialDesignIconForegroundButton}"
-            Command="{Binding OpenSettingWindowCommand}">
+            Command="{Binding OpenSettingWindowCommand}"
+            Style="{StaticResource MaterialDesignIconForegroundButton}">
             <materialDesign:PackIcon
-                Width="22"
-                Height="22"
+                Width="17"
+                Height="17"
                 Kind="Cog" />
 
         </Button>
@@ -49,6 +49,15 @@
             Width="100"
             Command="{Binding TranslateTextCommand}"
             Content="Translate" />
+
+        <CheckBox
+            Grid.Row="0"
+            Grid.Column="1"
+            Margin="0,0,250,0"
+            HorizontalAlignment="Right"
+            Content="カスタム命令"
+            IsChecked="{Binding UseCustomInstruction}"
+            Style="{StaticResource MaterialDesignCheckBox}" />
 
         <ComboBox
             Grid.Row="0"
@@ -98,7 +107,7 @@
                 VerticalContentAlignment="Top"
                 local:FontZoomBehavior.IsZoomEnabled="True"
                 local:SelectAllBehavior.IsSelectAllOnFocusEnabled="True"
-                materialDesign:HintAssist.Hint="翻訳するテキストを入力してください"
+                materialDesign:HintAssist.Hint="翻訳するテキスト"
                 AcceptsReturn="True"
                 FontSize="16"
                 Text="{Binding SourceText}"
@@ -122,7 +131,7 @@
                 VerticalContentAlignment="Top"
                 local:FontZoomBehavior.IsZoomEnabled="True"
                 local:SelectAllBehavior.IsSelectAllOnFocusEnabled="True"
-                materialDesign:HintAssist.Hint="翻訳結果"
+                materialDesign:HintAssist.Hint="AIによる回答"
                 AcceptsReturn="True"
                 FontSize="16"
                 IsReadOnly="True"
