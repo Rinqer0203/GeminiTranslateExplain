@@ -78,5 +78,12 @@ namespace GeminiTranslateExplain
             await _client.StreamGenerateContentAsync(body, SelectedGeminiModelName, progress);
             _messages.Add(("model", TranslatedText));
         }
+
+
+        [RelayCommand]
+        private void OpenSettingWindow()
+        {
+            MessageBox.Show("設定ウィンドウ開く");
+        }
     }
 }

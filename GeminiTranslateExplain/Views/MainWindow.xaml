@@ -28,6 +28,23 @@
 
         <Button
             Grid.Row="0"
+            Width="40"
+            Height="40"
+            Grid.Column="0"
+            HorizontalAlignment="Left"
+            HorizontalContentAlignment="Center"
+            Margin="5"
+            Style="{StaticResource MaterialDesignIconForegroundButton}"
+            Command="{Binding OpenSettingWindowCommand}">
+            <materialDesign:PackIcon
+                Width="22"
+                Height="22"
+                Kind="Cog" />
+
+        </Button>
+
+        <Button
+            Grid.Row="0"
             Grid.Column="0"
             Width="100"
             Command="{Binding TranslateTextCommand}"
