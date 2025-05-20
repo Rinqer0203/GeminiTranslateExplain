@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using GeminiTranslateExplain.Views;
 using System.Text;
+using System.Windows;
 
 namespace GeminiTranslateExplain
 {
@@ -83,7 +85,19 @@ namespace GeminiTranslateExplain
         [RelayCommand]
         private void OpenSettingWindow()
         {
-            MessageBox.Show("設定ウィンドウ開く");
+            // 既に開いているかチェック
+            foreach (Window window in System.Windows.Application.Current.Windows)
+            {
+                if (window is SettingWindow)
+                {
+                    window.Activate(); // 既に開いていればフォーカスを当てる
+                    return;
+                }
+            }
+
+            // 開かれていなければ新しく開く
+            var settingWindow = new SettingWindow();
+            settingWindow.Show();
         }
     }
 }

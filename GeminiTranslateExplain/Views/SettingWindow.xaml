@@ -3,10 +3,22 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:GeminiTranslateExplain.Views"
+        xmlns:local="clr-namespace:GeminiTranslateExplain.Views"        
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Style="{StaticResource MaterialDesignWindow}"
         mc:Ignorable="d"
         Title="SettingWindow" Height="450" Width="800">
-    <Grid>
-        
+    <Grid Margin="20">
+        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Width="300">
+            <TextBlock Text="設定" FontSize="20" Margin="0,0,0,20" />
+
+            <!-- APIキー入力用のTextBox -->
+            <TextBox 
+                materialDesign:HintAssist.Hint="API Key"
+                materialDesign:TextFieldAssist.DecorationVisibility="Visible"
+                Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                Width="300"
+                Margin="0,0,0,10" />
+        </StackPanel>
     </Grid>
 </Window>
