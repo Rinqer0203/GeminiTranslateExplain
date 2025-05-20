@@ -44,7 +44,6 @@ namespace GeminiTranslateExplain
             if ((now - _lastClipboardUpdateTime).TotalSeconds <= TranslationTriggerIntervalSeconds &&
                 currentText == _lastClipboardText)
             {
-                System.Windows.MessageBox.Show((now - _lastClipboardUpdateTime).TotalSeconds.ToString());
                 if (MainWindow?.DataContext is MainWindowViewModel viewModel)
                 {
                     // クリップボードの内容を翻訳する

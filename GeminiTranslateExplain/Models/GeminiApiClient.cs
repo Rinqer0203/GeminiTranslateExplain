@@ -12,13 +12,14 @@ namespace GeminiTranslateExplain
         public record Content(string Role, Part[] Parts);
         public record RequestBody(SystemInstruction System_instruction, Content[] Contents);
 
+        public string ApiKey;
+
         private readonly HttpClient _httpClient = new();
-        private readonly string _apiKey;
 
         internal GeminiApiClient(string apiKey)
         {
             _httpClient.BaseAddress = new Uri("https://generativelanguage.googleapis.com/v1beta/");
-            _apiKey = apiKey;
+            ApiKey = apiKey;
         }
 
         public static RequestBody CreateRequestBody(string instruction, ReadOnlySpan<(string role, string text)> messages)
@@ -56,7 +57,7 @@ namespace GeminiTranslateExplain
 
         internal async Task StreamGenerateContentAsync(RequestBody body, GeminiModel model, IProgress<string> progress)
         {
-            var path = $"models/{model.Name}:streamGenerateContent?alt=sse&key={_apiKey}";
+            var path = $"models/{model.Name}:streamGenerateContent?alt=sse&key={ApiKey}";
 
             using var request = new HttpRequestMessage(HttpMethod.Post, path);
             request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/event-stream"));
