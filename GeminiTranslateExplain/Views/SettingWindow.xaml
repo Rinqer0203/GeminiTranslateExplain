@@ -37,6 +37,12 @@
                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
                     Text="{Binding ApiKey}" />
 
+                <ComboBox
+                    Margin="0,0,0,20"
+                    HorizontalAlignment="Stretch"
+                    ItemsSource="{Binding WindowTypeItems}"
+                    SelectedItem="{Binding SelectedResultWindowType, Mode=TwoWay}" />
+
                 <!--  システム命令  -->
                 <TextBox
                     Height="100"

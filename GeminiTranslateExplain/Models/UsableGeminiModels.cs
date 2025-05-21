@@ -1,11 +1,11 @@
 ﻿namespace GeminiTranslateExplain
 {
-    internal readonly record struct GeminiModel(string Name, int Rpm, int Tpm, int Rpd)
+    public readonly record struct GeminiModel(string Name, int Rpm, int Tpm, int Rpd)
     {
         public override string ToString() => Name;
     };
 
-    internal static class UsableGeminiModels
+    public static class UsableGeminiModels
     {
         internal static readonly GeminiModel[] Models =
         [

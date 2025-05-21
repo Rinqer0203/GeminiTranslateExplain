@@ -4,12 +4,27 @@ using System.Text.Json;
 
 namespace GeminiTranslateExplain
 {
+    public enum WindowType
+    {
+        SimpleResultWindow,
+        MainWindow,
+        Clipboard
+    }
+
     public class AppConfig
     {
         public static AppConfig Instance { get; } = LoadConfig();
 
         public const string ConfigFileName = "appconfig.json";
+
+        // ここから先はJsonSerializerでシリアライズされるプロパティ
         public string ApiKey { get; set; } = string.Empty;
+
+        public WindowType SelectedResultWindowType { get; set; } = WindowType.Clipboard;
+
+        public bool UseCustomInstruction { get; set; } = false;
+
+        public GeminiModel SelectedGeminiModel { get; set; } = UsableGeminiModels.Models[0];
 
         public string SystemInstruction { get; set; } =
             "以下の英文を、読みやすく正確な日本語に翻訳してください。" +
@@ -18,6 +33,8 @@ namespace GeminiTranslateExplain
 
         public string CustomSystemInstruction { get; set; } = "以下の単語について説明してください\n";
 
+        // ここまでJsonSerializerでシリアライズされるプロパティ
+
         private static AppConfig LoadConfig()
         {
             AppConfig? config = null;
@@ -25,7 +42,7 @@ namespace GeminiTranslateExplain
             {
                 //todo: 例外対応
                 string json = File.ReadAllText(ConfigFileName);
-                config = System.Text.Json.JsonSerializer.Deserialize<AppConfig>(json);
+                config = JsonSerializer.Deserialize<AppConfig>(json);
             }
             return config ?? new AppConfig();
         }

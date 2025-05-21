@@ -69,7 +69,7 @@
             HorizontalContentAlignment="Center"
             FontSize="14"
             ItemsSource="{Binding GeminiModelNames}"
-            SelectedItem="{Binding SelectedGeminiModelName, Mode=TwoWay}">
+            SelectedItem="{Binding SelectedGeminiModel, Mode=TwoWay}">
             <ComboBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock
