@@ -66,6 +66,11 @@ namespace GeminiTranslateExplain
             settingWindow.ShowDialog();  // モーダル表示
         }
 
+        partial void OnSelectedGeminiModelChanged(GeminiModel value)
+        {
+            AppConfig.Instance.SelectedGeminiModel = value;
+        }
+
         partial void OnUseCustomInstructionChanged(bool value)
         {
             AppConfig.Instance.UseCustomInstruction = value;

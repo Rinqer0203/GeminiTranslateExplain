@@ -10,6 +10,13 @@ namespace GeminiTranslateExplain
         public SettingWindow()
         {
             InitializeComponent();
+            this.Closed += (_, _) =>
+            {
+                if (this.DataContext is SettingWindowViewModel vm)
+                {
+                    vm.OnClosed();
+                }
+            };
         }
     }
 }

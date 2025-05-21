@@ -24,6 +24,11 @@ namespace GeminiTranslateExplain
             SelectedResultWindowType = AppConfig.Instance.SelectedResultWindowType;
         }
 
+        public void OnClosed()
+        {
+            AppConfig.Instance.SaveConfigJson();
+        }
+
         partial void OnApiKeyChanged(string value)
         {
             AppConfig.Instance.ApiKey = value;
