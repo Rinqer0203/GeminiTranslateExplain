@@ -4,24 +4,76 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:GeminiTranslateExplain"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="SimpleResultWindow"
     Width="300"
     Height="150"
     MinWidth="300"
     MinHeight="150"
+    AllowsTransparency="True"
+    Background="Transparent"
+    MouseLeftButtonDown="Window_MouseLeftButtonDown"
     ShowInTaskbar="False"
     Style="{StaticResource MaterialDesignWindow}"
+    WindowStyle="None"
     mc:Ignorable="d">
 
     <Window.DataContext>
         <local:SimpleResultWindowViewModel />
     </Window.DataContext>
+
     <Grid>
-        <TextBox
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch"
-            IsReadOnly="True"
-            Text="{Binding TranslatedText}" />
+        <!--  背景  -->
+        <Border
+            Padding="8"
+            Background="{DynamicResource MaterialDesignPaper}"
+            CornerRadius="8">
+
+            <Grid>
+                <!--  バツボタン  -->
+                <Button
+                    Width="25"
+                    Height="25"
+                    Margin="0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Background="Transparent"
+                    BorderBrush="{x:Null}"
+                    Click="CloseButton_Click"
+                    Cursor="Hand"
+                    Style="{StaticResource MaterialDesignToolButton}"
+                    ToolTip="閉じる">
+
+                    <materialDesign:PackIcon
+                        Width="20"
+                        Height="20"
+                        Foreground="{DynamicResource MaterialDesignBody}"
+                        Kind="WindowClose" />
+                </Button>
+
+                <!--  表示内容  -->
+                <TextBox
+                    Margin="10,30,10,10"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    local:FontZoomBehavior.IsZoomEnabled="True"
+                    AcceptsReturn="True"
+                    IsReadOnly="True"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                    Text="{Binding TranslatedText}"
+                    TextWrapping="Wrap" />
+            </Grid>
+        </Border>
+
+        <!--  リサイズグリップ（必要に応じて）  -->
+        <Rectangle
+            Width="10"
+            Height="10"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Cursor="SizeNWSE"
+            Fill="Transparent"
+            MouseDown="ResizeGrip_MouseDown" />
     </Grid>
 </Window>

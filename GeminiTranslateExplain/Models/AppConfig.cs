@@ -11,6 +11,12 @@ namespace GeminiTranslateExplain
         Clipboard
     }
 
+    public class WindowSizeSettings
+    {
+        public double Width { get; set; } = double.NaN;
+        public double Height { get; set; } = double.NaN;
+    }
+
     public class AppConfig
     {
         public static AppConfig Instance { get; } = LoadConfig();
@@ -20,7 +26,7 @@ namespace GeminiTranslateExplain
         // ここから先はJsonSerializerでシリアライズされるプロパティ
         public string ApiKey { get; set; } = string.Empty;
 
-        public WindowType SelectedResultWindowType { get; set; } = WindowType.Clipboard;
+        public WindowType SelectedResultWindowType { get; set; } = WindowType.SimpleResultWindow;
 
         public bool UseCustomInstruction { get; set; } = false;
 
@@ -33,6 +39,8 @@ namespace GeminiTranslateExplain
 
         public string CustomSystemInstruction { get; set; } = "以下の単語について説明してください\n";
 
+        public WindowSizeSettings SimpleResultWindowSize { get; set; } = new WindowSizeSettings();
+
         // ここまでJsonSerializerでシリアライズされるプロパティ
 
         private static AppConfig LoadConfig()
@@ -40,17 +48,36 @@ namespace GeminiTranslateExplain
             AppConfig? config = null;
             if (File.Exists(ConfigFileName))
             {
-                //todo: 例外対応
-                string json = File.ReadAllText(ConfigFileName);
-                config = JsonSerializer.Deserialize<AppConfig>(json);
+                try
+                {
+                    string json = File.ReadAllText(ConfigFileName);
+                    config = JsonSerializer.Deserialize<AppConfig>(json);
+                }
+                catch (JsonException ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error loading config file '{ConfigFileName}': {ex.Message}");
+                }
+                catch (Exception ex) // その他の予期せぬエラー
+                {
+                    System.Diagnostics.Debug.WriteLine($"An unexpected error occurred while loading config: {ex.Message}");
+                }
             }
-            return config ?? new AppConfig();
+            var loadedConfig = config ?? new AppConfig();
+
+            return loadedConfig;
         }
 
         public void SaveConfigJson()
         {
-            string json = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(ConfigFileName, json);
+            try
+            {
+                string json = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(ConfigFileName, json);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error saving config file '{ConfigFileName}': {ex.Message}");
+            }
         }
     }
 }
