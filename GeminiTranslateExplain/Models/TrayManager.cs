@@ -29,6 +29,15 @@
 
             _notifyIcon.ContextMenuStrip = contextMenu;
             _notifyIcon.DoubleClick += (_, _) => onShowWindow();
+
+            var iconUri = new Uri("pack://application:,,,/icon.ico", UriKind.Absolute);
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                if (System.Windows.Application.Current.MainWindow != null)
+                {
+                    System.Windows.Application.Current.MainWindow.Icon = System.Windows.Media.Imaging.BitmapFrame.Create(iconUri);
+                }
+            });
         }
 
         public async void ChangeCheckTemporaryIcon(int durationMs = 3000)
