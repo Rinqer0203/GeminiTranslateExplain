@@ -30,7 +30,8 @@
             _notifyIcon.ContextMenuStrip = contextMenu;
             _notifyIcon.DoubleClick += (_, _) => onShowWindow();
         }
-        public async void ShowTemporaryIcon(string resourcePath, int durationMs = 3000)
+
+        public async void ChangeCheckTemporaryIcon(int durationMs = 3000)
         {
             // キャンセルがあれば前回の一時変更を終了
             _iconChangeTokenSource?.Cancel();
@@ -40,7 +41,7 @@
 
             try
             {
-                var streamResource = System.Windows.Application.GetResourceStream(new Uri(resourcePath, UriKind.Relative))?.Stream;
+                var streamResource = System.Windows.Application.GetResourceStream(new Uri("check.ico", UriKind.Relative))?.Stream;
                 if (streamResource == null) return;
 
                 using var tempIcon = new Icon(streamResource);
