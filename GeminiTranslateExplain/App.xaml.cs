@@ -5,6 +5,8 @@ namespace GeminiTranslateExplain
 {
     public partial class App : System.Windows.Application
     {
+        private static Mutex? _mutex;
+
         private ClipboardMonitor? _clipboardMonitor;
         private TrayManager? _trayManager;
         private SimpleResultWindow? _simpleResultWindow;
@@ -18,6 +20,18 @@ namespace GeminiTranslateExplain
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            const string mutexName = "GeminiTranslateExplain_SingleInstance_Mutex";
+
+            bool createdNew;
+            _mutex = new Mutex(true, mutexName, out createdNew);
+
+            if (!createdNew)
+            {
+                // 既に起動しているので自分自身を終了
+                System.Windows.MessageBox.Show("すでに起動しています。", "確認", MessageBoxButton.OK, MessageBoxImage.Information);
+                Shutdown();
+                return;
+            }
             base.OnStartup(e);
 
             MainWindow = new MainWindow();
@@ -36,7 +50,9 @@ namespace GeminiTranslateExplain
 
             _clipboardMonitor = new ClipboardMonitor(MainWindow, OnClipboardUpdate);
             _trayManager = new TrayManager(() => ShowWindow(MainWindow), Shutdown);
-            MainWindow.Show();
+
+            if (!AppConfig.Instance.MinimizeToTray)
+                MainWindow.Show();
         }
 
 
@@ -153,6 +169,8 @@ namespace GeminiTranslateExplain
             _clipboardMonitor?.Dispose();
             _trayManager?.Dispose();
             AppConfig.Instance.SaveConfigJson();
+            _mutex?.ReleaseMutex();
+            _mutex?.Dispose();
             base.OnExit(e);
         }
     }

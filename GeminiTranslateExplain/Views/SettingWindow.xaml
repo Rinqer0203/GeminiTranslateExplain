@@ -80,6 +80,24 @@
                     Text="{Binding CustomSystemInstruction}"
                     TextAlignment="Left"
                     TextWrapping="Wrap" />
+
+                <CheckBox
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Margin="0,0,0,20"
+                    HorizontalAlignment="Left"
+                    Content="パソコン起動時に自動起動"
+                    IsChecked="{Binding StartupWithWindows}"
+                    Style="{StaticResource MaterialDesignCheckBox}" />
+
+                <CheckBox
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Margin="0,0,0,20"
+                    HorizontalAlignment="Left"
+                    Content="最小化して起動"
+                    IsChecked="{Binding MinimizeToTray}"
+                    Style="{StaticResource MaterialDesignCheckBox}" />
             </StackPanel>
         </ScrollViewer>
     </Grid>

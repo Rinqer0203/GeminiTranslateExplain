@@ -39,6 +39,10 @@ namespace GeminiTranslateExplain
 
         public WindowSize SimpleResultWindowSize { get; set; } = new WindowSize(-1, -1);
 
+        public bool StartupWithWindows { get; set; } = false;
+
+        public bool MinimizeToTray { get; set; } = true;
+
         // ここまでJsonSerializerでシリアライズされるプロパティ
 
         private static AppConfig LoadConfig()
