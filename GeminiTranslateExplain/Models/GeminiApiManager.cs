@@ -12,7 +12,6 @@ namespace GeminiTranslateExplain
 
         private GeminiApiManager() { }
 
-        // リクエスト中はこのプロパティをtureにする
         private bool _isRequesting = false;
 
         public void AddMessage(string role, string text)

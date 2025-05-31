@@ -11,11 +11,7 @@ namespace GeminiTranslateExplain
         Clipboard
     }
 
-    public class WindowSizeSettings
-    {
-        public double Width { get; set; } = double.NaN;
-        public double Height { get; set; } = double.NaN;
-    }
+    public readonly record struct WindowSize(double Width, double Height);
 
     public class AppConfig
     {
@@ -39,7 +35,9 @@ namespace GeminiTranslateExplain
 
         public string CustomSystemInstruction { get; set; } = "以下の単語について説明してください\n";
 
-        public WindowSizeSettings SimpleResultWindowSize { get; set; } = new WindowSizeSettings();
+        public WindowSize MainWindowSize { get; set; } = new WindowSize(-1, -1);
+
+        public WindowSize SimpleResultWindowSize { get; set; } = new WindowSize(-1, -1);
 
         // ここまでJsonSerializerでシリアライズされるプロパティ
 

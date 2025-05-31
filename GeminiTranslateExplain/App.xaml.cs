@@ -7,7 +7,6 @@ namespace GeminiTranslateExplain
     {
         private ClipboardMonitor? _clipboardMonitor;
         private TrayManager? _trayManager;
-
         private SimpleResultWindow? _simpleResultWindow;
 
         private DateTime _lastClipboardUpdateTime = DateTime.MinValue;
@@ -65,19 +64,15 @@ namespace GeminiTranslateExplain
                     mainwindowVM.SourceText = currentText;
                 }
 
-                //var mainWindowVM = MainWindow?.DataContext as MainWindowViewModel;
-                //var simpleResultWindowVM = _simpleResultWindow.DataContext as SimpleResultWindowViewModel;
-
-                //mainWindowVM.SourceText = currentText;
-
                 if (AppConfig.Instance.SelectedResultWindowType == WindowType.MainWindow)
                     TryShowWindow(MainWindow);
                 else if (AppConfig.Instance.SelectedResultWindowType == WindowType.SimpleResultWindow)
                     TryShowWindow(_simpleResultWindow);
 
-                var instance = GeminiApiManager.Instance;
-                instance.ClearMessages();
-                instance.AddMessage("user", currentText);
+                var geminiApiManagerInstance = GeminiApiManager.Instance;
+                geminiApiManagerInstance.ClearMessages();
+                geminiApiManagerInstance.AddMessage("user", currentText);
+
                 var progress = new Progress<string>(text =>
                 {
                     if (MainWindow?.DataContext is MainWindowViewModel mainwindowVM)
@@ -92,7 +87,7 @@ namespace GeminiTranslateExplain
 
                 Task.Run(async () =>
                 {
-                    var result = await instance.RequestTranslation(progress);
+                    var result = await geminiApiManagerInstance.RequestTranslation(progress);
                     if (AppConfig.Instance.SelectedResultWindowType == WindowType.Clipboard)
                     {
                         // クリップボードに翻訳結果をコピー
@@ -100,7 +95,7 @@ namespace GeminiTranslateExplain
                         {
                             _lastResultText = result;
                             Clipboard.SetText(result);
-                            //System.Windows.MessageBox.Show(result);
+                            _trayManager?.ShowTemporaryIcon("check.ico", 2000);
                         });
                     }
                 });
@@ -128,5 +123,4 @@ namespace GeminiTranslateExplain
             base.OnExit(e);
         }
     }
-
 }

@@ -59,7 +59,7 @@ namespace GeminiTranslateExplain
 
 
         [RelayCommand]
-        private void OpenSettingWindow()
+        private static void OpenSettingWindow()
         {
             var settingWindow = new SettingWindow();
             settingWindow.Owner = System.Windows.Application.Current.MainWindow;  // 所有者を明示

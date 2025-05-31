@@ -9,6 +9,7 @@ namespace GeminiTranslateExplain
         private readonly HwndSource _hwndSource;
         private readonly Window _window;
         private readonly Action _onClipboardUpdate;
+        private readonly IntPtr _hwnd;
         private bool _disposed = false;
 
         private const int WM_CLIPBOARDUPDATE = 0x031D;
@@ -25,11 +26,12 @@ namespace GeminiTranslateExplain
             _onClipboardUpdate = onClipboardUpdate ?? throw new ArgumentNullException(nameof(onClipboardUpdate));
 
             var helper = new WindowInteropHelper(_window);
-            var hwnd = helper.EnsureHandle();
-            _hwndSource = HwndSource.FromHwnd(hwnd)!;
+            _hwnd = helper.EnsureHandle();
+            _hwndSource = HwndSource.FromHwnd(_hwnd) ?? throw new InvalidOperationException("HwndSource could not be created.");
+
             _hwndSource.AddHook(WndProc);
 
-            AddClipboardFormatListener(hwnd);
+            AddClipboardFormatListener(_hwnd);
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -47,8 +49,8 @@ namespace GeminiTranslateExplain
         {
             if (_disposed) return;
             _disposed = true;
-            var hwnd = new WindowInteropHelper(_window).Handle;
-            RemoveClipboardFormatListener(hwnd);
+
+            RemoveClipboardFormatListener(_hwnd);
             _hwndSource.RemoveHook(WndProc);
         }
     }

@@ -12,20 +12,21 @@ namespace GeminiTranslateExplain
             this.Loaded += (s, e) =>
             {
                 // ウィンドウのサイズを設定
-                var config = AppConfig.Instance.SimpleResultWindowSize;
-                if (!double.IsNaN(config.Width)) this.Width = config.Width;
-                if (!double.IsNaN(config.Height)) this.Height = config.Height;
-            };
-
-            this.SizeChanged += (s, e) =>
-            {
-                // ウィンドウのサイズを保存
-                if (this.WindowState == WindowState.Normal)
+                var size = AppConfig.Instance.SimpleResultWindowSize;
+                if (size.Width > 0 && size.Height > 0)
                 {
-                    var config = AppConfig.Instance.SimpleResultWindowSize;
-                    config.Width = e.NewSize.Width;
-                    config.Height = e.NewSize.Height;
+                    this.Width = size.Width;
+                    this.Height = size.Height;
                 }
+
+                this.SizeChanged += (s, e) =>
+                {
+                    // ウィンドウのサイズを保存
+                    if (this.WindowState == WindowState.Normal)
+                    {
+                        AppConfig.Instance.SimpleResultWindowSize = new WindowSize(this.Width, this.Height);
+                    }
+                };
             };
         }
 

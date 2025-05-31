@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 
 namespace GeminiTranslateExplain
@@ -39,12 +40,14 @@ namespace GeminiTranslateExplain
             try
             {
                 using var doc = JsonDocument.Parse(json);
-                return doc.RootElement
+                var parts = doc.RootElement
                     .GetProperty("candidates")[0]
                     .GetProperty("content")
-                    .GetProperty("parts")[0]
-                    .GetProperty("text")
-                    .GetString();
+                    .GetProperty("parts")
+                    .EnumerateArray()
+                    .Select(p => p.GetProperty("text").GetString());
+
+                return string.Join("", parts);
             }
             catch (Exception ex)
             {
@@ -69,7 +72,7 @@ namespace GeminiTranslateExplain
             }
 
             using var stream = await response.Content.ReadAsStreamAsync();
-            using var reader = new StreamReader(stream);
+            using var reader = new StreamReader(stream, Encoding.UTF8);
 
             while (!reader.EndOfStream)
             {
