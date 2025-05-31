@@ -30,12 +30,12 @@ namespace GeminiTranslateExplain
             _simpleResultWindow = new();
             _simpleResultWindow.Closing += (s, args) =>
             {
-                args.Cancel = true;
-                _simpleResultWindow.Hide();
+                args.Cancel = true; // ウィンドウを閉じない
+                _simpleResultWindow.Hide(); // ウィンドウを隠す
             };
 
             _clipboardMonitor = new ClipboardMonitor(MainWindow, OnClipboardUpdate);
-            _trayManager = new TrayManager(() => TryShowWindow(MainWindow), Shutdown);
+            _trayManager = new TrayManager(() => ShowWindow(MainWindow), Shutdown);
             MainWindow.Show();
         }
 
@@ -66,33 +66,21 @@ namespace GeminiTranslateExplain
                 if (AppConfig.Instance.SelectedResultWindowType == WindowType.MainWindow)
                 {
                     SetWindowPosition(MainWindow);
-                    TryShowWindow(MainWindow);
+                    ShowWindow(MainWindow);
                 }
                 else if (AppConfig.Instance.SelectedResultWindowType == WindowType.SimpleResultWindow)
                 {
                     SetWindowPosition(_simpleResultWindow);
-                    TryShowWindow(_simpleResultWindow);
+                    ShowWindow(_simpleResultWindow);
                 }
 
-                var geminiApiManagerInstance = GeminiApiManager.Instance;
-                geminiApiManagerInstance.ClearMessages();
-                geminiApiManagerInstance.AddMessage("user", currentText);
-
-                var progress = new Progress<string>(text =>
-                {
-                    if (MainWindow?.DataContext is MainWindowViewModel mainwindowVM)
-                    {
-                        mainwindowVM.TranslatedText = text;
-                    }
-                    if (_simpleResultWindow?.DataContext is SimpleResultWindowViewModel simpleResultWindowVM)
-                    {
-                        simpleResultWindowVM.TranslatedText = text;
-                    }
-                });
+                var geminiApiManager = GeminiApiManager.Instance;
+                geminiApiManager.ClearMessages();
+                geminiApiManager.AddMessage("user", currentText);
 
                 Task.Run(async () =>
                 {
-                    var result = await geminiApiManagerInstance.RequestTranslation(progress);
+                    var result = await geminiApiManager.RequestTranslation();
                     _trayManager?.ChangeCheckTemporaryIcon(2000);
                     if (AppConfig.Instance.SelectedResultWindowType == WindowType.Clipboard)
                     {
@@ -149,7 +137,7 @@ namespace GeminiTranslateExplain
             window.Top = targetTop;
         }
 
-        private static void TryShowWindow(Window? window)
+        private static void ShowWindow(Window? window)
         {
             if (window == null) return;
 

@@ -31,6 +31,12 @@
             CornerRadius="8">
 
             <Grid>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition Height="30" />
+                </Grid.RowDefinitions>
+
                 <!--  バツボタン  -->
                 <Button
                     Width="25"
@@ -54,6 +60,7 @@
 
                 <!--  表示内容  -->
                 <TextBox
+                    Grid.Row="0"
                     Margin="10,30,10,10"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
@@ -63,6 +70,23 @@
                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
                     Text="{Binding TranslatedText}"
                     TextWrapping="Wrap" />
+
+                <TextBox
+                    Grid.Row="1"
+                    Margin="10,0,10,0"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    materialDesign:HintAssist.Hint="追加で質問"
+                    AcceptsReturn="True"
+                    FontSize="15"
+                    Text="{Binding QuestionText, UpdateSourceTrigger=PropertyChanged}"
+                    TextAlignment="Left"
+                    TextWrapping="Wrap">
+
+                    <TextBox.InputBindings>
+                        <KeyBinding Command="{Binding SendQuestionCommand}" Gesture="Enter" />
+                    </TextBox.InputBindings>
+                </TextBox>
             </Grid>
         </Border>
 

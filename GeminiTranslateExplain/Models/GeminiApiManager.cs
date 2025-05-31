@@ -2,6 +2,11 @@
 
 namespace GeminiTranslateExplain
 {
+    public interface IProgressTextReceiver
+    {
+        string Text { set; }
+    }
+
     public class GeminiApiManager
     {
         public static GeminiApiManager Instance { get; } = new GeminiApiManager();
@@ -9,6 +14,7 @@ namespace GeminiTranslateExplain
         private readonly GeminiApiClient _client = new();
         private readonly StringBuilder _sb = new();
         private readonly List<(string role, string text)> _messages = new(64);
+        private readonly List<IProgressTextReceiver> _progressReceivers = new();
 
         private GeminiApiManager() { }
 
@@ -19,12 +25,25 @@ namespace GeminiTranslateExplain
             _messages.Add((role, text));
         }
 
+        public void RegisterProgressReceiver(IProgressTextReceiver receiver)
+        {
+            if (!_progressReceivers.Contains(receiver))
+            {
+                _progressReceivers.Add(receiver);
+            }
+        }
+
+        public void UnregisterProgressReceiver(IProgressTextReceiver receiver)
+        {
+            _progressReceivers.Remove(receiver);
+        }
+
         public void ClearMessages()
         {
             _messages.Clear();
         }
 
-        public async Task<string> RequestTranslation(IProgress<string> progress)
+        public async Task<string> RequestTranslation()
         {
             if (_isRequesting)
             {
@@ -37,7 +56,11 @@ namespace GeminiTranslateExplain
             var sourceProgress = new Progress<string>(text =>
             {
                 _sb.Append(text);
-                progress.Report(_sb.ToString());
+                var currentText = _sb.ToString();
+                foreach (var holder in _progressReceivers)
+                {
+                    holder.Text = currentText;
+                }
             });
 
             _sb.Clear();

@@ -3,9 +3,15 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace GeminiTranslateExplain
 {
-    internal partial class MainWindowViewModel : ObservableObject
+    internal partial class MainWindowViewModel : ObservableObject, IProgressTextReceiver
     {
         public GeminiModel[] GeminiModelNames { get; } = UsableGeminiModels.Models;
+
+        string IProgressTextReceiver.Text
+        {
+            set => TranslatedText = value;
+        }
+
 
         [ObservableProperty]
         private GeminiModel _selectedGeminiModel = AppConfig.Instance.SelectedGeminiModel;
@@ -22,6 +28,10 @@ namespace GeminiTranslateExplain
         [ObservableProperty]
         private bool _useCustomInstruction = AppConfig.Instance.UseCustomInstruction;
 
+        public MainWindowViewModel()
+        {
+            GeminiApiManager.Instance.RegisterProgressReceiver(this);
+        }
 
         [RelayCommand]
         private async Task TranslateText()
@@ -35,9 +45,7 @@ namespace GeminiTranslateExplain
             var instance = GeminiApiManager.Instance;
             instance.ClearMessages();
             instance.AddMessage("user", SourceText);
-
-            var progress = new Progress<string>(text => TranslatedText = text);
-            await instance.RequestTranslation(progress);
+            await instance.RequestTranslation();
         }
 
         [RelayCommand]
@@ -52,9 +60,7 @@ namespace GeminiTranslateExplain
             var instance = GeminiApiManager.Instance;
             instance.AddMessage("user", QuestionText);
             QuestionText = string.Empty;
-
-            var progress = new Progress<string>(text => TranslatedText = text);
-            await instance.RequestTranslation(progress);
+            await instance.RequestTranslation();
         }
 
 
