@@ -9,7 +9,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="SettingWindow"
     Width="650"
-    Height="450"
+    Height="500"
     MinWidth="650"
     MinHeight="450"
     Style="{StaticResource MaterialDesignWindow}"
