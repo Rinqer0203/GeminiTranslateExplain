@@ -1,6 +1,7 @@
-﻿using System.Text;
+﻿using GeminiTranslateExplain.Models.Extensions;
+using System.Text;
 
-namespace GeminiTranslateExplain
+namespace GeminiTranslateExplain.Models
 {
     public interface IProgressTextReceiver
     {

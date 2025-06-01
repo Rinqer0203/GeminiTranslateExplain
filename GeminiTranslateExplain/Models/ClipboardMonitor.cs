@@ -2,23 +2,23 @@
 using System.Windows;
 using System.Windows.Interop;
 
-namespace GeminiTranslateExplain
+namespace GeminiTranslateExplain.Models
 {
     public class ClipboardMonitor : IDisposable
     {
         private readonly HwndSource _hwndSource;
         private readonly Window _window;
         private readonly Action _onClipboardUpdate;
-        private readonly IntPtr _hwnd;
+        private readonly nint _hwnd;
         private bool _disposed = false;
 
         private const int WM_CLIPBOARDUPDATE = 0x031D;
 
         [DllImport("user32.dll", SetLastError = true)]
-        private static extern bool AddClipboardFormatListener(IntPtr hwnd);
+        private static extern bool AddClipboardFormatListener(nint hwnd);
 
         [DllImport("user32.dll", SetLastError = true)]
-        private static extern bool RemoveClipboardFormatListener(IntPtr hwnd);
+        private static extern bool RemoveClipboardFormatListener(nint hwnd);
 
         public ClipboardMonitor(Window window, Action onClipboardUpdate)
         {
@@ -34,7 +34,7 @@ namespace GeminiTranslateExplain
             AddClipboardFormatListener(_hwnd);
         }
 
-        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        private nint WndProc(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)
         {
             if (msg == WM_CLIPBOARDUPDATE)
             {
@@ -42,7 +42,7 @@ namespace GeminiTranslateExplain
                 handled = true;
             }
 
-            return IntPtr.Zero;
+            return nint.Zero;
         }
 
         public void Dispose()

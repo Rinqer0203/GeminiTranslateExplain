@@ -1,4 +1,4 @@
-﻿namespace GeminiTranslateExplain
+﻿namespace GeminiTranslateExplain.Models
 {
     public readonly record struct GeminiModel(string Name, int Rpm, int Tpm, int Rpd)
     {

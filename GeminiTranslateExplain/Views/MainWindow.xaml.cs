@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using GeminiTranslateExplain.Models;
+using System.Windows;
 using System.Windows.Input;
 
 namespace GeminiTranslateExplain

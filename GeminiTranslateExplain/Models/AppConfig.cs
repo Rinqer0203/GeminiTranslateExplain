@@ -2,7 +2,7 @@
 using System.Text.Json;
 
 
-namespace GeminiTranslateExplain
+namespace GeminiTranslateExplain.Models
 {
     public enum WindowType
     {

@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using GeminiTranslateExplain.Models;
 using IWshRuntimeLibrary;
 using System.Diagnostics;
 using System.IO;
