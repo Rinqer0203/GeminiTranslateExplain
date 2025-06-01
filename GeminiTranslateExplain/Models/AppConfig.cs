@@ -41,7 +41,7 @@ namespace GeminiTranslateExplain
 
         public bool StartupWithWindows { get; set; } = false;
 
-        public bool MinimizeToTray { get; set; } = true;
+        public bool MinimizeToTray { get; set; } = false;
 
         // ここまでJsonSerializerでシリアライズされるプロパティ
 

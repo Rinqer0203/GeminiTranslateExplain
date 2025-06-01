@@ -20,10 +20,13 @@
     </Window.DataContext>
 
     <Grid Margin="20">
-        <ScrollViewer VerticalScrollBarVisibility="Hidden">
-            <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel
+                Margin="30,0,30,0"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
                 <TextBlock
-                    Margin="0,0,0,20"
+                    Margin="-30,0,0,20"
                     FontSize="20"
                     Text="設定" />
 

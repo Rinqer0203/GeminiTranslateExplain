@@ -9,6 +9,8 @@
     Title="GeminiTranslateExplain"
     Width="800"
     Height="450"
+    MinWidth="700"
+    MinHeight="300"
     MouseLeftButtonDown="Window_MouseLeftButtonDown"
     Style="{StaticResource MaterialDesignWindow}"
     mc:Ignorable="d">
