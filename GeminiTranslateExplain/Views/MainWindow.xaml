@@ -110,7 +110,7 @@
                 VerticalContentAlignment="Top"
                 local:FontZoomBehavior.IsZoomEnabled="True"
                 local:SelectAllBehavior.IsSelectAllOnFocusEnabled="True"
-                materialDesign:HintAssist.Hint="翻訳するテキスト"
+                materialDesign:HintAssist.Hint="翻訳するテキスト    ctrl+c+cで即座に翻訳"
                 AcceptsReturn="True"
                 FontSize="16"
                 Text="{Binding SourceText}"
