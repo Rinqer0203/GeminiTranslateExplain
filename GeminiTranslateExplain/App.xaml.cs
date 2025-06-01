@@ -97,7 +97,6 @@ namespace GeminiTranslateExplain
                 Task.Run(async () =>
                 {
                     var result = await geminiApiManager.RequestTranslation();
-                    _trayManager?.ChangeCheckTemporaryIcon(2000);
                     if (AppConfig.Instance.SelectedResultWindowType == WindowType.Clipboard)
                     {
                         // クリップボードに翻訳結果をコピー
@@ -105,6 +104,7 @@ namespace GeminiTranslateExplain
                         {
                             _lastResultText = result;
                             Clipboard.SetText(result);
+                            _trayManager?.ChangeCheckTemporaryIcon(2000);
                         });
                     }
                 });

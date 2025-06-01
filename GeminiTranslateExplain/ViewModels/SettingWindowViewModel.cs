@@ -67,7 +67,6 @@ namespace GeminiTranslateExplain
             string shortcutPath = Path.Combine(startupFolderPath, $"{appName}.lnk");
 
             // 実行ファイル(.exe)のフルパスを取得
-
             var mainModule = Process.GetCurrentProcess().MainModule
                  ?? throw new InvalidOperationException("現在のプロセスのメインモジュールが取得できませんでした。");
             string exePath = mainModule.FileName;
