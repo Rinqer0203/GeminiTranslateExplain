@@ -9,16 +9,31 @@ namespace GeminiTranslateExplain.Services
         string Text { set; }
     }
 
+    internal interface IGeminiApiClient
+    {
+        Task StreamGenerateContentAsync(string apiKey, GeminiApiClient.RequestBody body, GeminiModel model, IProgress<string> progress);
+    }
+
     public class GeminiApiManager
     {
         public static GeminiApiManager Instance { get; } = new GeminiApiManager();
 
-        private readonly GeminiApiClient _client = new();
+        private readonly IGeminiApiClient _client;
         private readonly StringBuilder _sb = new();
         private readonly List<(string role, string text)> _messages = new(64);
         private readonly List<IProgressTextReceiver> _progressReceivers = new();
 
-        private GeminiApiManager() { }
+        private GeminiApiManager()
+        {
+            if (AppConfig.Instance.UseDummyApi)
+            {
+                _client = new DummyApiClient();
+            }
+            else
+            {
+                _client = new GeminiApiClient();
+            }
+        }
 
         private bool _isRequesting = false;
 

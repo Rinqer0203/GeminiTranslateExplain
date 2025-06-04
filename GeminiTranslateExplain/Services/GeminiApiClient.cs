@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace GeminiTranslateExplain.Services
 {
-    internal class GeminiApiClient
+    internal class GeminiApiClient : IGeminiApiClient
     {
         public record Part(string Text);
         public record SystemInstruction(Part[] Parts);
@@ -56,7 +56,7 @@ namespace GeminiTranslateExplain.Services
             }
         }
 
-        internal async Task StreamGenerateContentAsync(string apiKey, RequestBody body, GeminiModel model, IProgress<string> progress)
+        async Task IGeminiApiClient.StreamGenerateContentAsync(string apiKey, RequestBody body, GeminiModel model, IProgress<string> progress)
         {
             var path = $"models/{model.Name}:streamGenerateContent?alt=sse&key={apiKey}";
 

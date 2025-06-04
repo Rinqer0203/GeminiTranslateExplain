@@ -159,10 +159,9 @@ namespace GeminiTranslateExplain
         {
             if (window == null) return;
 
-            window.Show();
-            window.WindowState = WindowState.Normal;
-            window.Activate();
             window.Topmost = true;
+            window.Show();
+            WindowUtilities.ForceActive(window);
             window.Topmost = false;
         }
 
