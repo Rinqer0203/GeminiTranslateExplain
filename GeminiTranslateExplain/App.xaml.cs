@@ -116,14 +116,14 @@ namespace GeminiTranslateExplain
 
                 if (AppConfig.Instance.SelectedResultWindowType == WindowType.MainWindow)
                 {
-                    SetWindowPosition(MainWindow);
                     ShowWindow(MainWindow);
+                    SetWindowPosition(MainWindow);
                 }
                 else if (AppConfig.Instance.SelectedResultWindowType == WindowType.SimpleResultWindow)
                 {
                     var window = WindowManager.GetView<SimpleResultWindow>();
-                    SetWindowPosition(window);
                     ShowWindow(window);
+                    SetWindowPosition(window);
                 }
 
                 var geminiApiManager = GeminiApiManager.Instance;
@@ -152,39 +152,7 @@ namespace GeminiTranslateExplain
 
         private static void SetWindowPosition(Window? window)
         {
-            if (window == null) return;
-
-            var cursorPosition = System.Windows.Forms.Cursor.Position;
-            var screen = System.Windows.Forms.Screen.FromPoint(cursorPosition);
-            var workingArea = screen.WorkingArea;
-
-            window.WindowStartupLocation = WindowStartupLocation.Manual;
-
-            double windowWidth = window.ActualWidth > 0 ? window.ActualWidth : window.Width > 0 ? window.Width : 400;
-            double windowHeight = window.ActualHeight > 0 ? window.ActualHeight : window.Height > 0 ? window.Height : 300;
-
-            const int offsetX = 20;
-            const int offsetY = 20;
-
-            bool moveLeft = (cursorPosition.X + offsetX + windowWidth > workingArea.Right);
-            bool moveUp = (cursorPosition.Y + offsetY + windowHeight > workingArea.Bottom);
-
-            double targetLeft = cursorPosition.X + (moveLeft ? -offsetX - windowWidth : offsetX);
-            double targetTop = cursorPosition.Y + (moveUp ? -offsetY - windowHeight : offsetY);
-
-            // 最終チェック：画面外に出ないように調整
-            if (targetLeft < workingArea.Left)
-                targetLeft = workingArea.Left;
-            else if (targetLeft + windowWidth > workingArea.Right)
-                targetLeft = workingArea.Right - windowWidth;
-
-            if (targetTop < workingArea.Top)
-                targetTop = workingArea.Top;
-            else if (targetTop + windowHeight > workingArea.Bottom)
-                targetTop = workingArea.Bottom - windowHeight;
-
-            window.Left = targetLeft;
-            window.Top = targetTop;
+            WindowPositioner.SetWindowPosition(window);
         }
 
         private static void ShowWindow(Window? window)
