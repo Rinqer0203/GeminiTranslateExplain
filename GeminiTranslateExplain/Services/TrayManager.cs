@@ -1,4 +1,4 @@
-﻿namespace GeminiTranslateExplain.Models
+﻿namespace GeminiTranslateExplain.Services
 {
     public class TrayManager : IDisposable
     {

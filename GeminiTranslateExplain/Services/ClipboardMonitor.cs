@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Interop;
 
-namespace GeminiTranslateExplain.Models
+namespace GeminiTranslateExplain.Services
 {
     public class ClipboardMonitor : IDisposable
     {

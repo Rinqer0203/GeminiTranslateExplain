@@ -1,5 +1,7 @@
 ﻿using GeminiTranslateExplain.Models;
+using GeminiTranslateExplain.Services;
 using System.Windows;
+using System.Windows.Threading;
 using Clipboard = System.Windows.Clipboard;
 
 namespace GeminiTranslateExplain
@@ -10,21 +12,21 @@ namespace GeminiTranslateExplain
 
         private ClipboardMonitor? _clipboardMonitor;
         private TrayManager? _trayManager;
-        private SimpleResultWindow? _simpleResultWindow;
 
         private DateTime _lastClipboardUpdateTime = DateTime.MinValue;
         private string _lastClipboardText = string.Empty;
         private string _lastResultText = string.Empty;
 
+
         // 指定された秒数以内に同じテキストがクリップボードにコピーされた場合に翻訳を実行
         private const int TranslationTriggerIntervalSeconds = 1;
+
 
         protected override void OnStartup(StartupEventArgs e)
         {
             const string mutexName = "GeminiTranslateExplain_SingleInstance_Mutex";
 
-            bool createdNew;
-            _mutex = new Mutex(true, mutexName, out createdNew);
+            _mutex = new Mutex(true, mutexName, out bool createdNew);
 
             if (!createdNew)
             {
@@ -33,20 +35,27 @@ namespace GeminiTranslateExplain
                 Shutdown();
                 return;
             }
+
+            ExceptionHandlerManager.RegisterHandlers();
             base.OnStartup(e);
 
-            MainWindow = new MainWindow();
-            MainWindow.Closing += (s, args) =>
+            var mainWindow = new MainWindow();
+            if (mainWindow.DataContext is MainWindowViewModel mainWindowVM)
+                WindowManager.Register(mainWindow, mainWindowVM);
+            mainWindow.Closing += (s, args) =>
             {
                 args.Cancel = true; // ウィンドウを閉じない
-                MainWindow.Hide(); // ウィンドウを隠す
+                mainWindow.Hide(); // ウィンドウを隠す
             };
+            this.MainWindow = mainWindow;
 
-            _simpleResultWindow = new();
-            _simpleResultWindow.Closing += (s, args) =>
+            var simpleResultWindow = new SimpleResultWindow();
+            if (simpleResultWindow.DataContext is SimpleResultWindowViewModel simpleResultVM)
+                WindowManager.Register(simpleResultWindow, simpleResultVM);
+            simpleResultWindow.Closing += (s, args) =>
             {
                 args.Cancel = true; // ウィンドウを閉じない
-                _simpleResultWindow.Hide(); // ウィンドウを隠す
+                simpleResultWindow.Hide(); // ウィンドウを隠す
             };
 
             _clipboardMonitor = new ClipboardMonitor(MainWindow, OnClipboardUpdate);
@@ -54,6 +63,31 @@ namespace GeminiTranslateExplain
 
             if (!AppConfig.Instance.MinimizeToTray)
                 MainWindow.Show();
+
+            // デバッグモードでウィンドウ位置を更新するタイマーを設定
+            if (AppConfig.Instance.DebugWindowPositionMode)
+            {
+                var debugWindowTimer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromMilliseconds(1500)
+                };
+                debugWindowTimer.Tick += (sender, args) =>
+                {
+                    Window? targetWindow = null;
+
+                    if (AppConfig.Instance.SelectedResultWindowType == WindowType.MainWindow)
+                        targetWindow = MainWindow;
+                    else if (AppConfig.Instance.SelectedResultWindowType == WindowType.SimpleResultWindow)
+                        targetWindow = WindowManager.GetView<SimpleResultWindow>();
+
+                    if (targetWindow != null)
+                    {
+                        SetWindowPosition(targetWindow);
+                        ShowWindow(targetWindow);
+                    }
+                };
+                debugWindowTimer.Start();
+            }
         }
 
 
@@ -67,7 +101,7 @@ namespace GeminiTranslateExplain
             string currentText = Clipboard.GetText();
             DateTime now = DateTime.Now;
 
-            if (_lastResultText == currentText)
+            if (_lastResultText == currentText || string.IsNullOrWhiteSpace(currentText))
                 return;
 
             // 指定秒数以内かつ同じテキストかどうか
@@ -87,8 +121,9 @@ namespace GeminiTranslateExplain
                 }
                 else if (AppConfig.Instance.SelectedResultWindowType == WindowType.SimpleResultWindow)
                 {
-                    SetWindowPosition(_simpleResultWindow);
-                    ShowWindow(_simpleResultWindow);
+                    var window = WindowManager.GetView<SimpleResultWindow>();
+                    SetWindowPosition(window);
+                    ShowWindow(window);
                 }
 
                 var geminiApiManager = GeminiApiManager.Instance;
@@ -119,26 +154,25 @@ namespace GeminiTranslateExplain
         {
             if (window == null) return;
 
-            var cursorPosition = Cursor.Position;
-
-            double windowWidth = window.Width > 0 ? window.Width : 400;
-            double windowHeight = window.Height > 0 ? window.Height : 300;
-
-            var screen = Screen.FromPoint(cursorPosition);
+            var cursorPosition = System.Windows.Forms.Cursor.Position;
+            var screen = System.Windows.Forms.Screen.FromPoint(cursorPosition);
             var workingArea = screen.WorkingArea;
 
-            // デフォルトのオフセット
-            int offsetX = 20;
-            int offsetY = 20;
+            window.WindowStartupLocation = WindowStartupLocation.Manual;
 
-            // 方向を決める（右下がデフォルトだが、画面の端に近い場合は反転）
+            double windowWidth = window.ActualWidth > 0 ? window.ActualWidth : window.Width > 0 ? window.Width : 400;
+            double windowHeight = window.ActualHeight > 0 ? window.ActualHeight : window.Height > 0 ? window.Height : 300;
+
+            const int offsetX = 20;
+            const int offsetY = 20;
+
             bool moveLeft = (cursorPosition.X + offsetX + windowWidth > workingArea.Right);
             bool moveUp = (cursorPosition.Y + offsetY + windowHeight > workingArea.Bottom);
 
             double targetLeft = cursorPosition.X + (moveLeft ? -offsetX - windowWidth : offsetX);
             double targetTop = cursorPosition.Y + (moveUp ? -offsetY - windowHeight : offsetY);
 
-            // ウィンドウが画面外に出ないよう最終チェック（念のため）
+            // 最終チェック：画面外に出ないように調整
             if (targetLeft < workingArea.Left)
                 targetLeft = workingArea.Left;
             else if (targetLeft + windowWidth > workingArea.Right)
@@ -149,7 +183,6 @@ namespace GeminiTranslateExplain
             else if (targetTop + windowHeight > workingArea.Bottom)
                 targetTop = workingArea.Bottom - windowHeight;
 
-            window.WindowStartupLocation = WindowStartupLocation.Manual;
             window.Left = targetLeft;
             window.Top = targetTop;
         }

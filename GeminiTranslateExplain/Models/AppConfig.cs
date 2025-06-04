@@ -43,6 +43,8 @@ namespace GeminiTranslateExplain.Models
 
         public bool MinimizeToTray { get; set; } = false;
 
+        public bool DebugWindowPositionMode { get; set; } = false;
+
         // ここまでJsonSerializerでシリアライズされるプロパティ
 
         private static AppConfig LoadConfig()
