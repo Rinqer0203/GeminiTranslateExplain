@@ -5,15 +5,10 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 
-namespace GeminiTranslateExplain.Services
+namespace GeminiTranslateExplain.Services.ApiClients
 {
     internal class GeminiApiClient : IGeminiApiClient
     {
-        public record Part(string Text);
-        public record SystemInstruction(Part[] Parts);
-        public record Content(string Role, Part[] Parts);
-        public record RequestBody(SystemInstruction System_instruction, Content[] Contents);
-
         private readonly HttpClient _httpClient = new();
 
         internal GeminiApiClient()
@@ -36,6 +31,9 @@ namespace GeminiTranslateExplain.Services
             );
         }
 
+        /// <summary>
+        /// jsonからテキストコンテンツを抽出する
+        /// </summary>
         private static string? ExtractContentFromJson(string json)
         {
             try
@@ -56,6 +54,14 @@ namespace GeminiTranslateExplain.Services
             }
         }
 
+        /// <summary>
+        /// ストリーミング形式でテキスト生成リクエストを送信します  
+        /// </summary>
+        /// <param name="apiKey">Gemini API の認証キー</param>
+        /// <param name="body">送信するリクエストの本文</param>
+        /// <param name="model">使用する Gemini モデル</param>
+        /// <param name="onGetContent">生成されたテキストコンテンツが届いた際に呼び出されるコールバック</param>
+        /// <returns>非同期タスク</returns>
         async Task IGeminiApiClient.StreamGenerateContentAsync(string apiKey, RequestBody body, GeminiModel model, Action<string> onGetContent)
         {
             var path = $"models/{model.Name}:streamGenerateContent?alt=sse&key={apiKey}";

@@ -1,15 +1,15 @@
 ﻿using GeminiTranslateExplain.Models;
 using System.Text;
 
-namespace GeminiTranslateExplain.Services
+namespace GeminiTranslateExplain.Services.ApiClients
 {
     internal class DummyApiClient : IGeminiApiClient
     {
-        Task IGeminiApiClient.StreamGenerateContentAsync(string apiKey, GeminiApiClient.RequestBody body, GeminiModel model, Action<string> onGetContent)
+        Task IGeminiApiClient.StreamGenerateContentAsync(string apiKey, RequestBody body, GeminiModel model, Action<string> onGetContent)
         {
             return Task.Run(() =>
             {
-                System.Threading.Thread.Sleep(300);
+                Thread.Sleep(300);
 
                 var sb = new StringBuilder();
                 sb.AppendLine("Dummy API Response:");

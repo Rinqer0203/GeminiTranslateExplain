@@ -1,19 +1,14 @@
 ﻿using GeminiTranslateExplain.Models;
 using GeminiTranslateExplain.Models.Extensions;
+using GeminiTranslateExplain.Services.ApiClients;
+using GeminiTranslateExplain.ViewModels;
 using System.Text;
 
 namespace GeminiTranslateExplain.Services
 {
-    public interface IProgressTextReceiver
-    {
-        string Text { set; }
-    }
-
-    internal interface IGeminiApiClient
-    {
-        Task StreamGenerateContentAsync(string apiKey, GeminiApiClient.RequestBody body, GeminiModel model, Action<string> onGetContent);
-    }
-
+    /// <summary>
+    /// Gemini APIリクエストを管理して、登録された<see cref="_progressReceivers"/>に進捗を通知するクラス
+    /// </summary>
     public class GeminiApiManager
     {
         public static GeminiApiManager Instance { get; } = new GeminiApiManager();
@@ -73,7 +68,7 @@ namespace GeminiTranslateExplain.Services
             _sb.Clear();
             var body = GeminiApiClient.CreateRequestBody(GetSystemInstruction(), _messages.AsSpan());
             var config = AppConfig.Instance;
-            await _client.StreamGenerateContentAsync(config.ApiKey, body, config.SelectedGeminiModel, onGetContentAction);
+            await _client.StreamGenerateContentAsync(config.ApiKey, body, config.SelectedGeminiModel, OnGetContentAction);
             var result = _sb.ToString();
             _messages.Add(("model", result));
 
@@ -81,7 +76,7 @@ namespace GeminiTranslateExplain.Services
             return result;
         }
 
-        private void onGetContentAction(string text)
+        private void OnGetContentAction(string text)
         {
             _sb.Append(text);
             var currentText = _sb.ToString();

@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using GeminiTranslateExplain.Models;
 using GeminiTranslateExplain.Services;
+using GeminiTranslateExplain.ViewModels;
 
 namespace GeminiTranslateExplain
 {
