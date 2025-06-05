@@ -1,5 +1,8 @@
 ﻿using GeminiTranslateExplain.Models;
 using GeminiTranslateExplain.Services;
+using MaterialDesignColors;
+using MaterialDesignThemes.Wpf;
+using Microsoft.Win32;
 using System.Windows;
 using System.Windows.Threading;
 using Clipboard = System.Windows.Clipboard;
@@ -40,6 +43,19 @@ namespace GeminiTranslateExplain
             ExceptionHandlerManager.RegisterHandlers();
             base.OnStartup(e);
 
+            // wpfのテーマを設定
+            var bundledTheme = new BundledTheme
+            {
+                BaseTheme = IsDarkTheme() ? BaseTheme.Dark : BaseTheme.Light,
+                PrimaryColor = PrimaryColor.Indigo,
+                SecondaryColor = SecondaryColor.DeepPurple
+            };
+            Resources.MergedDictionaries.Add(bundledTheme);
+            Resources.MergedDictionaries.Add(new ResourceDictionary
+            {
+                Source = new Uri("pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml")
+            });
+
             var mainWindow = new MainWindow();
             if (mainWindow.DataContext is MainWindowViewModel mainWindowVM)
                 WindowManager.Register(mainWindow, mainWindowVM);
@@ -60,7 +76,7 @@ namespace GeminiTranslateExplain
             };
 
             _clipboardMonitor = new ClipboardMonitor(MainWindow, OnClipboardUpdate);
-            _trayManager = new TrayManager(() => ShowWindow(MainWindow), Shutdown);
+            _trayManager = new TrayManager(() => ShowWindow(mainWindow), Shutdown);
 
             if (!AppConfig.Instance.MinimizeToTray)
                 MainWindow.Show();
@@ -83,7 +99,7 @@ namespace GeminiTranslateExplain
 
                     if (targetWindow != null)
                     {
-                        SetWindowPosition(targetWindow);
+                        WindowPositioner.SetWindowPosition(targetWindow);
                         ShowWindow(targetWindow);
                     }
                 };
@@ -98,7 +114,7 @@ namespace GeminiTranslateExplain
             // _lastResultTextによる分岐がないと初期値のcurrentTextとリセット時のテキストが同じになって無限ループになる
 
             DateTime now = DateTime.Now;
-            // クリップボードにテキストがない、または直近のクリップボードセットから0.3秒未満の場合は何もしない
+            // クリップボードにテキストがない、または直近のクリップボードセットから0.2秒未満の場合は何もしない
             // クリップボードが短時間で連続されて更新されると競合してエラーになる可能性がある
             if (!Clipboard.ContainsText() || (now - _lastClipboardSetTextTime).TotalSeconds < 0.2)
                 return;
@@ -121,13 +137,13 @@ namespace GeminiTranslateExplain
                 if (AppConfig.Instance.SelectedResultWindowType == WindowType.MainWindow)
                 {
                     ShowWindow(MainWindow);
-                    SetWindowPosition(MainWindow);
+                    WindowPositioner.SetWindowPosition(MainWindow);
                 }
                 else if (AppConfig.Instance.SelectedResultWindowType == WindowType.SimpleResultWindow)
                 {
                     var window = WindowManager.GetView<SimpleResultWindow>();
                     ShowWindow(window);
-                    SetWindowPosition(window);
+                    WindowPositioner.SetWindowPosition(window);
                 }
 
                 var geminiApiManager = GeminiApiManager.Instance;
@@ -155,9 +171,18 @@ namespace GeminiTranslateExplain
             _lastClipboardText = currentText;
         }
 
-        private static void SetWindowPosition(Window? window)
+        /// <summary>
+        /// Windowsのテーマがダークモードかどうかを判定
+        /// </summary>
+        public static bool IsDarkTheme()
         {
-            WindowPositioner.SetWindowPosition(window);
+            const string key = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
+            using var registryKey = Registry.CurrentUser.OpenSubKey(key);
+            if (registryKey?.GetValue("AppsUseLightTheme") is int value)
+            {
+                return value == 0; // 0 = dark, 1 = light
+            }
+            return false;
         }
 
         private static void ShowWindow(Window? window)
