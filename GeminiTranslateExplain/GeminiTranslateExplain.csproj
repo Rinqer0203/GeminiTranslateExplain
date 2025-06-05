@@ -7,7 +7,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
 	<UseWindowsForms>true</UseWindowsForms>
+	<ApplicationIcon>main_icon.ico</ApplicationIcon>
+	  
+	<!-- 自己完結ビルドでも1つの実行ファイルにまとめられる設定 -->
+	<IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+	<!-- サイズ削減 -->
+	<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+	  
   </PropertyGroup>
+	
 
   <ItemGroup>
     <None Remove="check.ico" />
@@ -24,6 +32,10 @@
       <Isolated>false</Isolated>
       <EmbedInteropTypes>true</EmbedInteropTypes>
     </COMReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="main_icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
