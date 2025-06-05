@@ -5,12 +5,11 @@ namespace GeminiTranslateExplain.Services
 {
     internal class DummyApiClient : IGeminiApiClient
     {
-        Task IGeminiApiClient.StreamGenerateContentAsync(string apiKey, GeminiApiClient.RequestBody body, GeminiModel model, IProgress<string> progress)
+        Task IGeminiApiClient.StreamGenerateContentAsync(string apiKey, GeminiApiClient.RequestBody body, GeminiModel model, Action<string> onGetContent)
         {
             return Task.Run(() =>
             {
                 System.Threading.Thread.Sleep(300);
-                // bodyの内容を返す
 
                 var sb = new StringBuilder();
                 sb.AppendLine("Dummy API Response:");
@@ -19,7 +18,7 @@ namespace GeminiTranslateExplain.Services
                 {
                     sb.AppendLine($"{content.Role}: {string.Join(" ", content.Parts.Select(p => p.Text))}");
                 }
-                progress.Report(sb.ToString());
+                onGetContent.Invoke(sb.ToString());
             });
         }
     }

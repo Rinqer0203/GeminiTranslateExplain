@@ -11,7 +11,7 @@ namespace GeminiTranslateExplain.Services
 
     internal interface IGeminiApiClient
     {
-        Task StreamGenerateContentAsync(string apiKey, GeminiApiClient.RequestBody body, GeminiModel model, IProgress<string> progress);
+        Task StreamGenerateContentAsync(string apiKey, GeminiApiClient.RequestBody body, GeminiModel model, Action<string> onGetContent);
     }
 
     public class GeminiApiManager
@@ -65,30 +65,30 @@ namespace GeminiTranslateExplain.Services
             if (_isRequesting)
             {
                 System.Media.SystemSounds.Beep.Play();
-                return string.Empty;
+                return "リクエスト中です";
             }
 
             _isRequesting = true;
 
-            var sourceProgress = new Progress<string>(text =>
-            {
-                _sb.Append(text);
-                var currentText = _sb.ToString();
-                foreach (var holder in _progressReceivers)
-                {
-                    holder.Text = currentText;
-                }
-            });
-
             _sb.Clear();
             var body = GeminiApiClient.CreateRequestBody(GetSystemInstruction(), _messages.AsSpan());
             var config = AppConfig.Instance;
-            await _client.StreamGenerateContentAsync(config.ApiKey, body, config.SelectedGeminiModel, sourceProgress);
+            await _client.StreamGenerateContentAsync(config.ApiKey, body, config.SelectedGeminiModel, onGetContentAction);
             var result = _sb.ToString();
             _messages.Add(("model", result));
 
             _isRequesting = false;
             return result;
+        }
+
+        private void onGetContentAction(string text)
+        {
+            _sb.Append(text);
+            var currentText = _sb.ToString();
+            foreach (var holder in _progressReceivers)
+            {
+                holder.Text = currentText;
+            }
         }
 
         private static string GetSystemInstruction()

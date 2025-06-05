@@ -14,6 +14,7 @@ namespace GeminiTranslateExplain
         private TrayManager? _trayManager;
 
         private DateTime _lastClipboardUpdateTime = DateTime.MinValue;
+        private DateTime _lastClipboardSetTextTime = DateTime.MinValue;
         private string _lastClipboardText = string.Empty;
         private string _lastResultText = string.Empty;
 
@@ -95,11 +96,14 @@ namespace GeminiTranslateExplain
         {
             // このイベントはclipboard.settextのときに、テキストのリセット&セットで2回呼ばれる
             // _lastResultTextによる分岐がないと初期値のcurrentTextとリセット時のテキストが同じになって無限ループになる
-            if (!Clipboard.ContainsText())
+
+            DateTime now = DateTime.Now;
+            // クリップボードにテキストがない、または直近のクリップボードセットから0.3秒未満の場合は何もしない
+            // クリップボードが短時間で連続されて更新されると競合してエラーになる可能性がある
+            if (!Clipboard.ContainsText() || (now - _lastClipboardSetTextTime).TotalSeconds < 0.2)
                 return;
 
             string currentText = Clipboard.GetText();
-            DateTime now = DateTime.Now;
 
             if (_lastResultText == currentText || string.IsNullOrWhiteSpace(currentText))
                 return;
@@ -139,7 +143,8 @@ namespace GeminiTranslateExplain
                         System.Windows.Application.Current.Dispatcher.Invoke(() =>
                         {
                             _lastResultText = result;
-                            Clipboard.SetText(result);
+                            _lastClipboardSetTextTime = DateTime.Now;
+                            Clipboard.SetText(result, System.Windows.TextDataFormat.Text);
                             _trayManager?.ChangeCheckTemporaryIcon(2000);
                         });
                     }

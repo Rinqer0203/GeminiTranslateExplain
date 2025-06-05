@@ -56,7 +56,7 @@ namespace GeminiTranslateExplain.Services
             }
         }
 
-        async Task IGeminiApiClient.StreamGenerateContentAsync(string apiKey, RequestBody body, GeminiModel model, IProgress<string> progress)
+        async Task IGeminiApiClient.StreamGenerateContentAsync(string apiKey, RequestBody body, GeminiModel model, Action<string> onGetContent)
         {
             var path = $"models/{model.Name}:streamGenerateContent?alt=sse&key={apiKey}";
 
@@ -68,7 +68,7 @@ namespace GeminiTranslateExplain.Services
             if (!response.IsSuccessStatusCode)
             {
                 var errorDetails = await response.Content.ReadAsStringAsync();
-                progress.Report($"(エラー: {response.StatusCode})\n{errorDetails}");
+                onGetContent.Invoke($"(エラー: {response.StatusCode})\n{errorDetails}");
                 return;
             }
 
@@ -87,7 +87,7 @@ namespace GeminiTranslateExplain.Services
                 var content = ExtractContentFromJson(jsonPart);
                 if (content != null)
                 {
-                    progress.Report(content);
+                    onGetContent.Invoke(content);
                 }
             }
         }
