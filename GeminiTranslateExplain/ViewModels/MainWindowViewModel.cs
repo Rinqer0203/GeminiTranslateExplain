@@ -8,7 +8,7 @@ namespace GeminiTranslateExplain
 {
     internal partial class MainWindowViewModel : ObservableObject, IProgressTextReceiver
     {
-        public GeminiModel[] GeminiModelNames { get; } = UsableGeminiModels.Models;
+        public AIModel[] GeminiModelNames { get; } = UsableAIModels.Models;
 
         string IProgressTextReceiver.Text
         {
@@ -17,7 +17,7 @@ namespace GeminiTranslateExplain
 
 
         [ObservableProperty]
-        private GeminiModel _selectedGeminiModel = AppConfig.Instance.SelectedGeminiModel;
+        private AIModel _selectedGeminiModel = AppConfig.Instance.SelectedGeminiModel;
 
         [ObservableProperty]
         private string _sourceText = string.Empty;
@@ -33,7 +33,7 @@ namespace GeminiTranslateExplain
 
         public MainWindowViewModel()
         {
-            GeminiApiManager.Instance.RegisterProgressReceiver(this);
+            ApiManager.Instance.RegisterProgressReceiver(this);
         }
 
         [RelayCommand]
@@ -45,7 +45,7 @@ namespace GeminiTranslateExplain
                 return;
             }
 
-            var instance = GeminiApiManager.Instance;
+            var instance = ApiManager.Instance;
             instance.ClearMessages();
             instance.AddMessage("user", SourceText);
             await instance.RequestTranslation();
@@ -60,7 +60,7 @@ namespace GeminiTranslateExplain
                 return;
             }
 
-            var instance = GeminiApiManager.Instance;
+            var instance = ApiManager.Instance;
             instance.AddMessage("user", QuestionText);
             QuestionText = string.Empty;
             await instance.RequestTranslation();
@@ -75,7 +75,7 @@ namespace GeminiTranslateExplain
             settingWindow.ShowDialog();  // モーダル表示
         }
 
-        partial void OnSelectedGeminiModelChanged(GeminiModel value)
+        partial void OnSelectedGeminiModelChanged(AIModel value)
         {
             AppConfig.Instance.SelectedGeminiModel = value;
         }

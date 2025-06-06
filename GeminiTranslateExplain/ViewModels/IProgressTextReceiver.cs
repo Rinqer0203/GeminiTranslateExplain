@@ -3,7 +3,7 @@
 namespace GeminiTranslateExplain.ViewModels
 {
     /// <summary>
-    /// <see cref="GeminiApiManager"/>に登録するためのインターフェース
+    /// <see cref="ApiManager"/>に登録するためのインターフェース
     /// </summary>
     public interface IProgressTextReceiver
     {

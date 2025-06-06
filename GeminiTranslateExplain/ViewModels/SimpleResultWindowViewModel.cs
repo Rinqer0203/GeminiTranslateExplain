@@ -20,7 +20,7 @@ namespace GeminiTranslateExplain
 
         public SimpleResultWindowViewModel()
         {
-            GeminiApiManager.Instance.RegisterProgressReceiver(this);
+            ApiManager.Instance.RegisterProgressReceiver(this);
         }
 
         [RelayCommand]
@@ -32,7 +32,7 @@ namespace GeminiTranslateExplain
                 return;
             }
 
-            var instance = GeminiApiManager.Instance;
+            var instance = ApiManager.Instance;
             instance.AddMessage("user", QuestionText);
             QuestionText = string.Empty;
             await instance.RequestTranslation();

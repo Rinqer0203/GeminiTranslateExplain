@@ -9,16 +9,16 @@ namespace GeminiTranslateExplain.Services
     /// <summary>
     /// Gemini APIリクエストを管理して、登録された<see cref="_progressReceivers"/>に進捗を通知するクラス
     /// </summary>
-    public class GeminiApiManager
+    public class ApiManager
     {
-        public static GeminiApiManager Instance { get; } = new GeminiApiManager();
+        public static ApiManager Instance { get; } = new ApiManager();
 
         private readonly IGeminiApiClient _client;
         private readonly StringBuilder _sb = new();
         private readonly List<(string role, string text)> _messages = new(64);
         private readonly List<IProgressTextReceiver> _progressReceivers = new();
 
-        private GeminiApiManager()
+        private ApiManager()
         {
             if (AppConfig.Instance.UseDummyApi)
             {
@@ -66,9 +66,9 @@ namespace GeminiTranslateExplain.Services
             _isRequesting = true;
 
             _sb.Clear();
-            var body = GeminiApiClient.CreateRequestBody(GetSystemInstruction(), _messages.AsSpan());
+            var request = GeminiApiClient.CreateRequestBody(GetSystemInstruction(), _messages.AsSpan());
             var config = AppConfig.Instance;
-            await _client.StreamGenerateContentAsync(config.ApiKey, body, config.SelectedGeminiModel, OnGetContentAction);
+            await _client.StreamGenerateContentAsync(config.GeminiApiKey, request, config.SelectedGeminiModel, OnGetContentAction);
             var result = _sb.ToString();
             _messages.Add(("model", result));
 

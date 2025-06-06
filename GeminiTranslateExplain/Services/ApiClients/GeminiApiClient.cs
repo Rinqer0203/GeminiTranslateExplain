@@ -16,7 +16,7 @@ namespace GeminiTranslateExplain.Services.ApiClients
             _httpClient.BaseAddress = new Uri("https://generativelanguage.googleapis.com/v1beta/");
         }
 
-        public static RequestBody CreateRequestBody(string instruction, ReadOnlySpan<(string role, string text)> messages)
+        public static GeminiRequest CreateRequestBody(string instruction, ReadOnlySpan<(string role, string text)> messages)
         {
             var contents = new Content[messages.Length];
             for (int i = 0; i < messages.Length; i++)
@@ -25,7 +25,7 @@ namespace GeminiTranslateExplain.Services.ApiClients
                 contents[i] = new Content(role, [new Part(text)]);
             }
 
-            return new RequestBody(
+            return new GeminiRequest(
                 new SystemInstruction([new Part(instruction)]),
                 contents
             );
@@ -58,17 +58,17 @@ namespace GeminiTranslateExplain.Services.ApiClients
         /// ストリーミング形式でテキスト生成リクエストを送信します  
         /// </summary>
         /// <param name="apiKey">Gemini API の認証キー</param>
-        /// <param name="body">送信するリクエストの本文</param>
+        /// <param name="geminiRequest">送信するリクエストのコンテンツ</param>
         /// <param name="model">使用する Gemini モデル</param>
         /// <param name="onGetContent">生成されたテキストコンテンツが届いた際に呼び出されるコールバック</param>
         /// <returns>非同期タスク</returns>
-        async Task IGeminiApiClient.StreamGenerateContentAsync(string apiKey, RequestBody body, GeminiModel model, Action<string> onGetContent)
+        async Task IGeminiApiClient.StreamGenerateContentAsync(string apiKey, GeminiRequest geminiRequest, AIModel model, Action<string> onGetContent)
         {
             var path = $"models/{model.Name}:streamGenerateContent?alt=sse&key={apiKey}";
 
             using var request = new HttpRequestMessage(HttpMethod.Post, path);
             request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/event-stream"));
-            request.Content = JsonContent.Create(body);
+            request.Content = JsonContent.Create(geminiRequest);
 
             using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
