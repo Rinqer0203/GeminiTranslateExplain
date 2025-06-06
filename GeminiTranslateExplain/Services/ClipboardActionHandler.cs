@@ -1,5 +1,5 @@
 ﻿using System.Windows;
-using Clipboard = System.Windows.Clipboard; // エイリアスで明確化
+using Clipboard = System.Windows.Clipboard;
 
 namespace GeminiTranslateExplain.Services
 {
@@ -31,6 +31,10 @@ namespace GeminiTranslateExplain.Services
         {
             ExecuteWithRetry(() => Clipboard.SetText(text), "クリップボードへのテキスト設定に失敗しました。");
             _lastSetText = text;
+            /// クリップボードの更新時間を記録
+            /// クリップボードを更新すると、数msでonClipboardUpdateが呼ばれるため、
+            /// _lastUpdateTimeを更新して更新間隔フィルターで弾く
+            _lastUpdateTime = DateTime.Now;
         }
 
         private static bool SafeClipboardContainsText()
@@ -85,10 +89,11 @@ namespace GeminiTranslateExplain.Services
             var intervalMs = (now - _lastUpdateTime).TotalMilliseconds;
 
             // 特定のテキストボックスで、コピー時に2回クリップボードが更新されることがあるため、
-            // 前回の更新からの時間が1ミリ秒未満、またはクリップボードにテキストがない場合は何もしない
-            if (intervalMs < 1 || SafeClipboardContainsText() == false)
+            // 前回の更新からの時間が50ミリ秒未満、またはクリップボードにテキストがない場合は何もしない
+            if (intervalMs < 50 || SafeClipboardContainsText() == false)
+            {
                 return;
-
+            }
             var clipboardText = SafeGetClipboardText();
 
             // クリップボードの内容が空、または前にクリップボードに設定したテキストと同じ場合は何もしない
