@@ -1,6 +1,4 @@
-﻿using GeminiTranslateExplain.Models;
-
-namespace GeminiTranslateExplain.Services.ApiClients
+﻿namespace GeminiTranslateExplain.Services.ApiClients
 {
     public record Part(string Text);
     public record SystemInstruction(Part[] Parts);
@@ -9,6 +7,6 @@ namespace GeminiTranslateExplain.Services.ApiClients
 
     public interface IGeminiApiClient
     {
-        Task StreamGenerateContentAsync(string apiKey, GeminiRequest body, AIModel model, Action<string> onGetContent);
+        Task StreamGenerateContentAsync(string apiKey, GeminiRequest body, string modelName, Action<string> onGetContent);
     }
 }

@@ -68,7 +68,7 @@ namespace GeminiTranslateExplain.Services
             _sb.Clear();
             var request = GeminiApiClient.CreateRequestBody(GetSystemInstruction(), _messages.AsSpan());
             var config = AppConfig.Instance;
-            await _client.StreamGenerateContentAsync(config.GeminiApiKey, request, config.SelectedGeminiModel, OnGetContentAction);
+            await _client.StreamGenerateContentAsync(config.GeminiApiKey, request, config.SelectedGeminiModel.Name, OnGetContentAction);
             var result = _sb.ToString();
             _messages.Add(("model", result));
 
