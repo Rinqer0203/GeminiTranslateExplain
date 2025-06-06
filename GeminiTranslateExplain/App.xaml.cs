@@ -96,14 +96,11 @@ namespace GeminiTranslateExplain
                 geminiApiManager.ClearMessages();
                 geminiApiManager.AddMessage("user", text);
 
-                bool isUiThread = System.Windows.Application.Current.Dispatcher.CheckAccess();
-
-
                 var result = await geminiApiManager.RequestTranslation();
                 if (AppConfig.Instance.SelectedResultWindowType == WindowType.Clipboard)
                 {
                     _clipboardActionHandler?.SafeSetClipboardText(result);
-                    _trayManager?.ChangeCheckTemporaryIcon(2000);
+                    _trayManager?.ChangeCheckTemporaryIcon(1000);
                 }
             });
         }

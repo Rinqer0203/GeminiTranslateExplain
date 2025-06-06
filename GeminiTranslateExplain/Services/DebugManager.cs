@@ -7,13 +7,16 @@ namespace GeminiTranslateExplain.Services
     public static class DebugManager
     {
         private static Window? _lastTargetWindow = null;
+
+        private const int UpdateSpanMs = 10;
+
         public static void Initialize()
         {
             if (AppConfig.Instance.DebugWindowPosition)
             {
                 var debugWindowTimer = new DispatcherTimer
                 {
-                    Interval = TimeSpan.FromMilliseconds(10)
+                    Interval = TimeSpan.FromMilliseconds(UpdateSpanMs)
                 };
                 debugWindowTimer.Tick += (sender, args) =>
                 {
