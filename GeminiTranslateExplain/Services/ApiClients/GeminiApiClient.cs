@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using GeminiTranslateExplain.Models;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -13,38 +14,24 @@ namespace GeminiTranslateExplain.Services.ApiClients
             _httpClient.BaseAddress = new Uri("https://generativelanguage.googleapis.com/v1beta/");
         }
 
-        public static GeminiRequest CreateRequestBody(string instruction, ReadOnlySpan<(string role, string text)> messages)
-        {
-            var contents = new Content[messages.Length];
-            for (int i = 0; i < messages.Length; i++)
-            {
-                var (role, text) = messages[i];
-                contents[i] = new Content(role, [new Part(text)]);
-            }
-
-            return new GeminiRequest(
-                new SystemInstruction([new Part(instruction)]),
-                contents
-            );
-        }
-
         /// <summary>
         /// ストリーミング形式でテキスト生成リクエストを送信します  
         /// </summary>
         /// <param name="apiKey">Gemini API の認証キー</param>
-        /// <param name="geminiRequest">送信するリクエストのコンテンツ</param>
+        /// <param name="request">送信するリクエストのコンテンツ</param>
         /// <param name="modelName">使用する Gemini モデル</param>
         /// <param name="onGetContent">生成されたテキストコンテンツが届いた際に呼び出されるコールバック</param>
         /// <returns>非同期タスク</returns>
-        async Task IGeminiApiClient.StreamGenerateContentAsync(string apiKey, GeminiRequest geminiRequest, string modelName, Action<string> onGetContent)
+        async Task IGeminiApiClient.StreamGenerateContentAsync(
+            string apiKey, GeminiRequestModels.Request request, string modelName, Action<string> onGetContent)
         {
             var path = $"models/{modelName}:streamGenerateContent?alt=sse&key={apiKey}";
 
-            using var request = new HttpRequestMessage(HttpMethod.Post, path);
-            request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/event-stream"));
-            request.Content = JsonContent.Create(geminiRequest);
+            using var requestMessage = new HttpRequestMessage(HttpMethod.Post, path);
+            requestMessage.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/event-stream"));
+            requestMessage.Content = JsonContent.Create(request);
 
-            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+            using var response = await _httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
             if (!response.IsSuccessStatusCode)
             {
                 await SseStreamProcessor.HandleErrorAsync(response, onGetContent);
