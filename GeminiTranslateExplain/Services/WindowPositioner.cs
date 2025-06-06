@@ -1,111 +1,111 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
-using System.Windows.Media;
-using System.Windows.Forms;
 
-public static class WindowPositioner
+namespace GeminiTranslateExplain.Services
 {
-    private const double OFFSET_IN_DIU = 30.0;
-
-    public static void SetWindowPosition(Window? window)
+    public static class WindowPositioner
     {
-        if (window == null) return;
-        
-        var helper = new WindowInteropHelper(window);
-        if (helper.Handle == IntPtr.Zero)
+        private const double OFFSET_IN_DIU = 30.0;
+
+        public static void SetWindowPosition(Window? window)
         {
-            window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-            return;
-        }
+            if (window == null) return;
 
-        if (!GetCursorPos(out POINT cursorPoint))
-        {
-            window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-            return;
-        }
+            var helper = new WindowInteropHelper(window);
+            if (helper.Handle == IntPtr.Zero)
+            {
+                window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                return;
+            }
 
-        var currentScreen = Screen.FromPoint(new System.Drawing.Point(cursorPoint.X, cursorPoint.Y));
-        var workArea = currentScreen.WorkingArea;
+            if (!GetCursorPos(out POINT cursorPoint))
+            {
+                window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                return;
+            }
 
-        var source = PresentationSource.FromVisual(window);
-        if (source?.CompositionTarget == null)
-        {
-            window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-            return;
-        }
-        var transform = source.CompositionTarget.TransformToDevice;
-        double scaleX = transform.M11;
-        double scaleY = transform.M22;
-        
-        double offsetXPixels = OFFSET_IN_DIU * scaleX;
-        double offsetYPixels = OFFSET_IN_DIU * scaleY;
+            var currentScreen = Screen.FromPoint(new System.Drawing.Point(cursorPoint.X, cursorPoint.Y));
+            var workArea = currentScreen.WorkingArea;
 
-        double windowWidthPixels = window.Width * scaleX;
-        double windowHeightPixels = window.Height * scaleY;
-        
-        double x, y;
+            var source = PresentationSource.FromVisual(window);
+            if (source?.CompositionTarget == null)
+            {
+                window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                return;
+            }
+            var transform = source.CompositionTarget.TransformToDevice;
+            double scaleX = transform.M11;
+            double scaleY = transform.M22;
 
-        x = cursorPoint.X + offsetXPixels;
-        y = cursorPoint.Y + offsetYPixels;
-        if (IsWithin(x, y, windowWidthPixels, windowHeightPixels, workArea))
-        {
+            double offsetXPixels = OFFSET_IN_DIU * scaleX;
+            double offsetYPixels = OFFSET_IN_DIU * scaleY;
+
+            double windowWidthPixels = window.Width * scaleX;
+            double windowHeightPixels = window.Height * scaleY;
+
+            double x, y;
+
+            x = cursorPoint.X + offsetXPixels;
+            y = cursorPoint.Y + offsetYPixels;
+            if (IsWithin(x, y, windowWidthPixels, windowHeightPixels, workArea))
+            {
+                SetWindowPositionInDips(window, x, y, scaleX, scaleY);
+                return;
+            }
+
+            x = cursorPoint.X - windowWidthPixels - offsetXPixels;
+            y = cursorPoint.Y + offsetYPixels;
+            if (IsWithin(x, y, windowWidthPixels, windowHeightPixels, workArea))
+            {
+                SetWindowPositionInDips(window, x, y, scaleX, scaleY);
+                return;
+            }
+
+            x = cursorPoint.X + offsetXPixels;
+            y = cursorPoint.Y - windowHeightPixels - offsetYPixels;
+            if (IsWithin(x, y, windowWidthPixels, windowHeightPixels, workArea))
+            {
+                SetWindowPositionInDips(window, x, y, scaleX, scaleY);
+                return;
+            }
+
+            x = cursorPoint.X - windowWidthPixels - offsetXPixels;
+            y = cursorPoint.Y - windowHeightPixels - offsetYPixels;
+            if (IsWithin(x, y, windowWidthPixels, windowHeightPixels, workArea))
+            {
+                SetWindowPositionInDips(window, x, y, scaleX, scaleY);
+                return;
+            }
+
+            x = cursorPoint.X + offsetXPixels;
+            y = cursorPoint.Y + offsetYPixels;
             SetWindowPositionInDips(window, x, y, scaleX, scaleY);
-            return;
         }
-        
-        x = cursorPoint.X - windowWidthPixels - offsetXPixels;
-        y = cursorPoint.Y + offsetYPixels;
-        if (IsWithin(x, y, windowWidthPixels, windowHeightPixels, workArea))
+
+        private static bool IsWithin(double x, double y, double width, double height, System.Drawing.Rectangle workArea)
         {
-            SetWindowPositionInDips(window, x, y, scaleX, scaleY);
-            return;
+            return x >= workArea.Left &&
+                   y >= workArea.Top &&
+                   (x + width) <= workArea.Right &&
+                   (y + height) <= workArea.Bottom;
         }
 
-        x = cursorPoint.X + offsetXPixels;
-        y = cursorPoint.Y - windowHeightPixels - offsetYPixels;
-        if (IsWithin(x, y, windowWidthPixels, windowHeightPixels, workArea))
+        private static void SetWindowPositionInDips(Window window, double pixelX, double pixelY, double scaleX, double scaleY)
         {
-            SetWindowPositionInDips(window, x, y, scaleX, scaleY);
-            return;
+            window.Left = pixelX / scaleX;
+            window.Top = pixelY / scaleY;
         }
 
-        x = cursorPoint.X - windowWidthPixels - offsetXPixels;
-        y = cursorPoint.Y - windowHeightPixels - offsetYPixels;
-        if (IsWithin(x, y, windowWidthPixels, windowHeightPixels, workArea))
+        [StructLayout(LayoutKind.Sequential)]
+        public struct POINT
         {
-            SetWindowPositionInDips(window, x, y, scaleX, scaleY);
-            return;
+            public int X;
+            public int Y;
         }
 
-        x = cursorPoint.X + offsetXPixels;
-        y = cursorPoint.Y + offsetYPixels;
-        SetWindowPositionInDips(window, x, y, scaleX, scaleY);
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetCursorPos(out POINT lpPoint);
     }
-
-    private static bool IsWithin(double x, double y, double width, double height, System.Drawing.Rectangle workArea)
-    {
-        return x >= workArea.Left &&
-               y >= workArea.Top &&
-               (x + width) <= workArea.Right &&
-               (y + height) <= workArea.Bottom;
-    }
-
-    private static void SetWindowPositionInDips(Window window, double pixelX, double pixelY, double scaleX, double scaleY)
-    {
-        window.Left = pixelX / scaleX;
-        window.Top = pixelY / scaleY;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct POINT
-    {
-        public int X;
-        public int Y;
-    }
-
-    [DllImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool GetCursorPos(out POINT lpPoint);
 }

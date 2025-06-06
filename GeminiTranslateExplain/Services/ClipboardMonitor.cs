@@ -7,7 +7,6 @@ namespace GeminiTranslateExplain.Services
     public class ClipboardMonitor : IDisposable
     {
         private readonly HwndSource _hwndSource;
-        private readonly Window _window;
         private readonly Action _onClipboardUpdate;
         private readonly nint _hwnd;
         private bool _disposed = false;
@@ -22,10 +21,9 @@ namespace GeminiTranslateExplain.Services
 
         public ClipboardMonitor(Window window, Action onClipboardUpdate)
         {
-            _window = window ?? throw new ArgumentNullException(nameof(window));
             _onClipboardUpdate = onClipboardUpdate ?? throw new ArgumentNullException(nameof(onClipboardUpdate));
 
-            var helper = new WindowInteropHelper(_window);
+            var helper = new WindowInteropHelper(window);
             _hwnd = helper.EnsureHandle();
             _hwndSource = HwndSource.FromHwnd(_hwnd) ?? throw new InvalidOperationException("HwndSource could not be created.");
 

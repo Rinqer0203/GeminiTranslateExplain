@@ -7,9 +7,9 @@ namespace GeminiTranslateExplain.Services.ApiClients
     {
         Task IGeminiApiClient.StreamGenerateContentAsync(string apiKey, RequestBody body, GeminiModel model, Action<string> onGetContent)
         {
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
-                Thread.Sleep(300);
+                await Task.Delay(500);  // 初期遅延
 
                 var sb = new StringBuilder();
                 sb.AppendLine("Dummy API Response:");
@@ -18,8 +18,18 @@ namespace GeminiTranslateExplain.Services.ApiClients
                 {
                     sb.AppendLine($"{content.Role}: {string.Join(" ", content.Parts.Select(p => p.Text))}");
                 }
-                onGetContent.Invoke(sb.ToString());
+
+                string fullText = sb.ToString();
+                int chunkSize = 10;
+
+                for (int i = 0; i < fullText.Length; i += chunkSize)
+                {
+                    string chunk = fullText.Substring(i, Math.Min(chunkSize, fullText.Length - i));
+                    onGetContent.Invoke(chunk);
+                    await Task.Delay(50);  // 文字ごとの遅延（速度調整）
+                }
             });
         }
+
     }
 }

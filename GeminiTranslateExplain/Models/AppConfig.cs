@@ -43,7 +43,7 @@ namespace GeminiTranslateExplain.Models
 
         public bool MinimizeToTray { get; set; } = false;
 
-        public bool DebugWindowPositionMode { get; set; } = false;
+        public bool DebugWindowPosition { get; set; } = false;
 
         public bool UseDummyApi { get; set; } = false;
 
