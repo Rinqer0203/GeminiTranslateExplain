@@ -45,6 +45,7 @@ namespace GeminiTranslateExplain
                 Source = new Uri("pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml")
             });
 
+            //　MainWindow初期化
             var mainWindow = new MainWindow();
             if (mainWindow.DataContext is MainWindowViewModel mainWindowVM)
                 WindowManager.Register(mainWindow, mainWindowVM);
@@ -55,6 +56,7 @@ namespace GeminiTranslateExplain
             };
             this.MainWindow = mainWindow;
 
+            // SimpleResultWindow初期化
             var simpleResultWindow = new SimpleResultWindow();
             if (simpleResultWindow.DataContext is SimpleResultWindowViewModel simpleResultVM)
                 WindowManager.Register(simpleResultWindow, simpleResultVM);
@@ -65,6 +67,7 @@ namespace GeminiTranslateExplain
             };
 
             _trayManager = new TrayManager(() => ShowWindow(mainWindow), Shutdown);
+            DebugManager.Initialize();
 
             if (!AppConfig.Instance.MinimizeToTray)
                 MainWindow.Show();
