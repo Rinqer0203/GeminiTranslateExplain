@@ -22,7 +22,7 @@ namespace GeminiTranslateExplain.Services
         {
             if (AppConfig.Instance.UseDummyApi)
             {
-                _client = new DummyApiClient();
+                _client = new DummyGeminiApiClient();
             }
             else
             {

@@ -2,7 +2,7 @@
 
 namespace GeminiTranslateExplain.Services.ApiClients
 {
-    internal class DummyApiClient : IGeminiApiClient
+    internal class DummyGeminiApiClient : IGeminiApiClient
     {
         Task IGeminiApiClient.StreamGenerateContentAsync(string apiKey, GeminiRequest body, string modelName, Action<string> onGetContent)
         {
@@ -25,7 +25,7 @@ namespace GeminiTranslateExplain.Services.ApiClients
                 {
                     string chunk = fullText.Substring(i, Math.Min(chunkSize, fullText.Length - i));
                     onGetContent.Invoke(chunk);
-                    await Task.Delay(50);  // 文字ごとの遅延（速度調整）
+                    await Task.Delay(50);  // 文字ごとの遅延
                 }
             });
         }
