@@ -28,7 +28,16 @@ namespace GeminiTranslateExplain.Models
 
         public bool UseCustomInstruction { get; set; } = false;
 
-        public AIModel SelectedAiModel { get; set; } = UsableAiModels.Models[0];
+        public AiModel[] AIModels { get; set; } = [
+            new AiModel("gemini-2.0-flash-lite", AiType.gemini),
+            new AiModel("gemini-2.0-flash", AiType.gemini),
+            new AiModel("gemini-2.5-flash-preview-05-20", AiType.gemini),
+            new AiModel("gpt-4.1-nano", AiType.openai),
+            new AiModel("gpt-4o-mini", AiType.openai),
+            new AiModel("gpt-4.1", AiType.openai),
+        ];
+
+        public AiModel SelectedAiModel { get; set; }
 
         public string SystemInstruction { get; set; } = "以下の英文を、読みやすく正確な日本語に翻訳してください。\r\n" +
             "あなたのすべての出力形式はプレーンテキスト（Markdownや記法のない普通の文章）とし、装飾やコード記法、" +
@@ -71,6 +80,9 @@ namespace GeminiTranslateExplain.Models
                 }
             }
             var loadedConfig = config ?? new AppConfig();
+
+            if (loadedConfig.AIModels.Length > 0)
+                loadedConfig.SelectedAiModel = loadedConfig.AIModels[0];
 
             return loadedConfig;
         }
