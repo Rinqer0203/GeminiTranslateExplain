@@ -14,7 +14,7 @@ namespace GeminiTranslateExplain.Services.ApiClients
             using var reader = new StreamReader(stream, Encoding.UTF8);
             while (!reader.EndOfStream)
             {
-                var line = await reader.ReadLineAsync();
+                var line = await reader.ReadLineAsync().ConfigureAwait(false);
                 if (string.IsNullOrWhiteSpace(line) || !line.StartsWith("data:"))
                     continue;
 

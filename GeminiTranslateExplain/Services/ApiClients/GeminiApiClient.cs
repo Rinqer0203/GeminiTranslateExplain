@@ -7,11 +7,12 @@ namespace GeminiTranslateExplain.Services.ApiClients
 {
     internal class GeminiApiClient : IGeminiApiClient
     {
-        private readonly HttpClient _httpClient = new();
+        private readonly HttpClient _httpClient;
+        private const string BaseUrl = "https://generativelanguage.googleapis.com/v1beta/";
 
-        internal GeminiApiClient()
+        internal GeminiApiClient(HttpClient httpClient)
         {
-            _httpClient.BaseAddress = new Uri("https://generativelanguage.googleapis.com/v1beta/");
+            _httpClient = httpClient;
         }
 
         /// <summary>
@@ -23,9 +24,9 @@ namespace GeminiTranslateExplain.Services.ApiClients
         /// <param name="onGetContent">生成されたテキストコンテンツが届いた際に呼び出されるコールバック</param>
         /// <returns>非同期タスク</returns>
         async Task IGeminiApiClient.StreamGenerateContentAsync(
-            string apiKey, GeminiRequestModels.Request request, string modelName, Action<string> onGetContent)
+            string apiKey, GeminiApiRequestModels.Request request, string modelName, Action<string> onGetContent)
         {
-            var path = $"models/{modelName}:streamGenerateContent?alt=sse&key={apiKey}";
+            var path = $"{BaseUrl}models/{modelName}:streamGenerateContent?alt=sse&key={apiKey}";
 
             using var requestMessage = new HttpRequestMessage(HttpMethod.Post, path);
             requestMessage.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/event-stream"));
@@ -39,7 +40,7 @@ namespace GeminiTranslateExplain.Services.ApiClients
             }
 
             using var stream = await response.Content.ReadAsStreamAsync();
-            await SseStreamProcessor.ProcessStreamAsync(stream, ExtractContentFromJson, onGetContent);
+            await Task.Run(() => SseStreamProcessor.ProcessStreamAsync(stream, ExtractContentFromJson, onGetContent));
         }
 
         /// <summary>

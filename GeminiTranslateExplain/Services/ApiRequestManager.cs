@@ -2,6 +2,7 @@
 using GeminiTranslateExplain.Models.Extensions;
 using GeminiTranslateExplain.Services.ApiClients;
 using GeminiTranslateExplain.ViewModels;
+using System.Net.Http;
 using System.Text;
 
 namespace GeminiTranslateExplain.Services
@@ -9,25 +10,30 @@ namespace GeminiTranslateExplain.Services
     /// <summary>
     /// Gemini APIリクエストを管理して、登録された<see cref="_progressReceivers"/>に進捗を通知するクラス
     /// </summary>
-    public class ApiManager
+    public class ApiRequestManager
     {
-        public static ApiManager Instance { get; } = new ApiManager();
+        public static ApiRequestManager Instance { get; } = new ApiRequestManager();
 
         private readonly IGeminiApiClient _client;
+        private readonly IOpenAiApiClient _OpenAiApiClient;
         private readonly StringBuilder _sb = new();
         private readonly List<(string role, string text)> _messages = new(64);
         private readonly List<IProgressTextReceiver> _progressReceivers = new();
 
-        private ApiManager()
+        private ApiRequestManager()
         {
+            var httpClient = new HttpClient();
+
             if (AppConfig.Instance.UseDummyApi)
             {
                 _client = new DummyGeminiApiClient();
             }
             else
             {
-                _client = new GeminiApiClient();
+                _client = new GeminiApiClient(httpClient);
             }
+
+            _OpenAiApiClient = new OpenAiApiClient(httpClient);
         }
 
         private bool _isRequesting = false;
@@ -66,9 +72,17 @@ namespace GeminiTranslateExplain.Services
             _isRequesting = true;
 
             _sb.Clear();
-            var request = GeminiRequestModels.CreateRequestBody(GetSystemInstruction(), _messages.AsSpan());
             var config = AppConfig.Instance;
-            await _client.StreamGenerateContentAsync(config.GeminiApiKey, request, config.SelectedGeminiModel.Name, OnGetContentAction);
+            if (config.SelectedGeminiModel.Name.Contains("gpt"))
+            {
+                var request = OpenAiApiRequestModels.CreateRequest(config.SelectedGeminiModel.Name, GetSystemInstruction(), _messages.AsSpan());
+                await _OpenAiApiClient.StreamGenerateContentAsync(config.ChatGptApiKey, request, OnGetContentAction);
+            }
+            else
+            {
+                var request = GeminiApiRequestModels.CreateRequest(GetSystemInstruction(), _messages.AsSpan());
+                await _client.StreamGenerateContentAsync(config.GeminiApiKey, request, config.SelectedGeminiModel.Name, OnGetContentAction);
+            }
             var result = _sb.ToString();
             _messages.Add(("model", result));
 

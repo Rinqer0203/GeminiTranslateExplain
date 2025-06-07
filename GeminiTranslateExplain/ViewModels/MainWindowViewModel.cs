@@ -8,7 +8,7 @@ namespace GeminiTranslateExplain
 {
     internal partial class MainWindowViewModel : ObservableObject, IProgressTextReceiver
     {
-        public AIModel[] GeminiModelNames { get; } = UsableAIModels.Models;
+        public AIModel[] GeminiModelNames { get; } = UsableAiModels.Models;
 
         string IProgressTextReceiver.Text
         {
@@ -33,7 +33,7 @@ namespace GeminiTranslateExplain
 
         public MainWindowViewModel()
         {
-            ApiManager.Instance.RegisterProgressReceiver(this);
+            ApiRequestManager.Instance.RegisterProgressReceiver(this);
         }
 
         [RelayCommand]
@@ -45,7 +45,7 @@ namespace GeminiTranslateExplain
                 return;
             }
 
-            var instance = ApiManager.Instance;
+            var instance = ApiRequestManager.Instance;
             instance.ClearMessages();
             instance.AddMessage("user", SourceText);
             await instance.RequestTranslation();
@@ -60,7 +60,7 @@ namespace GeminiTranslateExplain
                 return;
             }
 
-            var instance = ApiManager.Instance;
+            var instance = ApiRequestManager.Instance;
             instance.AddMessage("user", QuestionText);
             QuestionText = string.Empty;
             await instance.RequestTranslation();

@@ -95,7 +95,7 @@ namespace GeminiTranslateExplain
                     WindowPositioner.SetWindowPosition(window);
                 }
 
-                var geminiApiManager = ApiManager.Instance;
+                var geminiApiManager = ApiRequestManager.Instance;
                 geminiApiManager.ClearMessages();
                 geminiApiManager.AddMessage("user", text);
 

@@ -22,11 +22,13 @@ namespace GeminiTranslateExplain.Models
         // ここから先はJsonSerializerでシリアライズされるプロパティ
         public string GeminiApiKey { get; set; } = string.Empty;
 
+        public string ChatGptApiKey { get; set; } = string.Empty;
+
         public WindowType SelectedResultWindowType { get; set; } = WindowType.SimpleResultWindow;
 
         public bool UseCustomInstruction { get; set; } = false;
 
-        public AIModel SelectedGeminiModel { get; set; } = UsableAIModels.Models[0];
+        public AIModel SelectedGeminiModel { get; set; } = UsableAiModels.Models[0];
 
         public string SystemInstruction { get; set; } = "以下の英文を、読みやすく正確な日本語に翻訳してください。\r\n" +
             "あなたのすべての出力形式はプレーンテキスト（Markdownや記法のない普通の文章）とし、装飾やコード記法、" +
