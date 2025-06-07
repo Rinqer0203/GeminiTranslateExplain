@@ -90,7 +90,7 @@ namespace GeminiTranslateExplain.Services
 
             // 特定のテキストボックスで、コピー時に2回クリップボードが更新されることがあるため、
             // 前回の更新からの時間が50ミリ秒未満、またはクリップボードにテキストがない場合は何もしない
-            if (intervalMs < 50 || SafeClipboardContainsText() == false)
+            if (intervalMs < 100 || SafeClipboardContainsText() == false)
             {
                 return;
             }
