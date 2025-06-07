@@ -97,7 +97,7 @@ namespace GeminiTranslateExplain
 
                 var geminiApiManager = ApiRequestManager.Instance;
                 geminiApiManager.ClearMessages();
-                geminiApiManager.AddMessage("user", text);
+                geminiApiManager.AddUserMessage(text);
 
                 var result = await geminiApiManager.RequestTranslation();
                 if (AppConfig.Instance.SelectedResultWindowType == WindowType.Clipboard)

@@ -8,7 +8,7 @@ using System.Text;
 namespace GeminiTranslateExplain.Services
 {
     /// <summary>
-    /// Gemini APIリクエストを管理して、登録された<see cref="_progressReceivers"/>に進捗を通知するクラス
+    /// Gemini APIリクエストを管理して、<see cref="RegisterProgressReceiver"/>で登録されたReceiverに進捗を通知するクラス
     /// </summary>
     public class ApiRequestManager
     {
@@ -38,9 +38,9 @@ namespace GeminiTranslateExplain.Services
 
         private bool _isRequesting = false;
 
-        public void AddMessage(string role, string text)
+        public void AddUserMessage(string text)
         {
-            _messages.Add((role, text));
+            _messages.Add(("user", text));
         }
 
         public void RegisterProgressReceiver(IProgressTextReceiver receiver)
@@ -84,6 +84,9 @@ namespace GeminiTranslateExplain.Services
                 await _client.StreamGenerateContentAsync(config.GeminiApiKey, request, config.SelectedGeminiModel.Name, OnGetContentAction);
             }
             var result = _sb.ToString();
+
+            // システムの返答のロールをmodelにしているが、
+            // それぞれのCreateRequestで決められたAPIロールに変換されるので問題ない
             _messages.Add(("model", result));
 
             _isRequesting = false;

@@ -33,7 +33,7 @@ namespace GeminiTranslateExplain
             }
 
             var instance = ApiRequestManager.Instance;
-            instance.AddMessage("user", QuestionText);
+            instance.AddUserMessage(QuestionText);
             QuestionText = string.Empty;
             await instance.RequestTranslation();
         }
