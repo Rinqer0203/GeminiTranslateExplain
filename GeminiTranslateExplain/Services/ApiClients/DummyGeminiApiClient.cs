@@ -9,10 +9,10 @@ namespace GeminiTranslateExplain.Services.ApiClients
         {
             return Task.Run(async () =>
             {
-                await Task.Delay(500);  // 初期遅延
+                await Task.Delay(500);  // 初期ディレイ
 
                 var sb = new StringBuilder();
-                sb.AppendLine("Dummy API Response:");
+                sb.AppendLine("Dummy Gemini API Response:");
                 sb.AppendLine($"System Instruction: {string.Join(" ", body.System_instruction.Parts.Select(p => p.Text))}");
                 foreach (var content in body.Contents)
                 {
@@ -26,7 +26,7 @@ namespace GeminiTranslateExplain.Services.ApiClients
                 {
                     string chunk = fullText.Substring(i, Math.Min(chunkSize, fullText.Length - i));
                     onGetContent.Invoke(chunk);
-                    await Task.Delay(50);  // 文字ごとの遅延
+                    await Task.Delay(50);  // 擬似ストリーム間隔
                 }
             });
         }
