@@ -10,18 +10,26 @@
             int messageCount = messages.Length + 1;
             Message[] messageArray = new Message[messageCount];
 
-            // 最初のメッセージ（システムメッセージ）を設定
+            // システムメッセージを設定
             messageArray[0] = new Message("system", instruction);
 
-            // `messages` をループして Message[] 配列に設定
             for (int i = 0; i < messages.Length; i++)
             {
                 var (role, text) = messages[i];
-                messageArray[i + 1] = new Message(role, text); // 1から開始
+                messageArray[i + 1] = new Message(ConvertRole(role), text);
             }
 
-            // Requestオブジェクトを作成して返す
             return new Request(modelName, messageArray);
+        }
+
+        /// <summary>
+        /// OpenAI APIのロールに変換する
+        /// </summary>
+        private static string ConvertRole(string role)
+        {
+            if (role == "user")
+                return "user";
+            return "system";
         }
     }
 }

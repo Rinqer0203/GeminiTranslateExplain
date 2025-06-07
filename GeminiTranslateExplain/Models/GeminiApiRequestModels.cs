@@ -19,13 +19,24 @@
             for (int i = 0; i < messages.Length; i++)
             {
                 var (role, text) = messages[i];
-                contents[i] = new Content(role, [new Part(text)]);
+                contents[i] = new Content(ConvertRole(role), [new Part(text)]);
             }
 
             return new Request(
                 new SystemInstruction([new Part(instruction)]),
                 contents
             );
+        }
+
+
+        /// <summary>
+        /// Gemini APIのロールに変換する
+        /// </summary>
+        private static string ConvertRole(string role)
+        {
+            if (role == "user")
+                return "user";
+            return "model";
         }
     }
 }
