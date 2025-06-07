@@ -11,7 +11,10 @@ namespace GeminiTranslateExplain
         public List<WindowType> WindowTypeItems { get; }
 
         [ObservableProperty]
-        private string _apiKey = AppConfig.Instance.GeminiApiKey;
+        private string _geminiApiKey = AppConfig.Instance.GeminiApiKey;
+
+        [ObservableProperty]
+        private string _openAiApiKey = AppConfig.Instance.OpenAiApiKey;
 
         [ObservableProperty]
         private WindowType _selectedResultWindowType;
@@ -39,9 +42,14 @@ namespace GeminiTranslateExplain
             AppConfig.Instance.SaveConfigJson();
         }
 
-        partial void OnApiKeyChanged(string value)
+        partial void OnGeminiApiKeyChanged(string value)
         {
             AppConfig.Instance.GeminiApiKey = value;
+        }
+
+        partial void OnOpenAiApiKeyChanged(string value)
+        {
+            AppConfig.Instance.OpenAiApiKey = value;
         }
 
         partial void OnSelectedResultWindowTypeChanged(WindowType value)

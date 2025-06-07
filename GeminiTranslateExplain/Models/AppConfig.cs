@@ -22,7 +22,7 @@ namespace GeminiTranslateExplain.Models
         // ここから先はJsonSerializerでシリアライズされるプロパティ
         public string GeminiApiKey { get; set; } = string.Empty;
 
-        public string ChatGptApiKey { get; set; } = string.Empty;
+        public string OpenAiApiKey { get; set; } = string.Empty;
 
         public WindowType SelectedResultWindowType { get; set; } = WindowType.SimpleResultWindow;
 

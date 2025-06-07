@@ -34,11 +34,20 @@
                 <TextBox
                     Margin="0,0,0,20"
                     HorizontalAlignment="Stretch"
-                    materialDesign:HintAssist.Hint="API Key"
+                    materialDesign:HintAssist.Hint="Gemini API Key"
                     materialDesign:TextFieldAssist.DecorationVisibility="Visible"
                     FontSize="15"
                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                    Text="{Binding ApiKey}" />
+                    Text="{Binding GeminiApiKey}" />
+
+                <TextBox
+                    Margin="0,0,0,20"
+                    HorizontalAlignment="Stretch"
+                    materialDesign:HintAssist.Hint="OpenAI API Key"
+                    materialDesign:TextFieldAssist.DecorationVisibility="Visible"
+                    FontSize="15"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                    Text="{Binding OpenAiApiKey}" />
 
                 <TextBlock
                     Margin="0,0,0,10"

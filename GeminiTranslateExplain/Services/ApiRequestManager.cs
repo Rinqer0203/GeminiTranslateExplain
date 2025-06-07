@@ -77,7 +77,7 @@ namespace GeminiTranslateExplain.Services
             if (config.SelectedGeminiModel.Name.Contains("gpt"))
             {
                 var request = OpenAiApiRequestModels.CreateRequest(config.SelectedGeminiModel.Name, GetSystemInstruction(), _messages.AsSpan());
-                await _openAiApiClient.StreamGenerateContentAsync(config.ChatGptApiKey, request, OnGetContentAction);
+                await _openAiApiClient.StreamGenerateContentAsync(config.OpenAiApiKey, request, OnGetContentAction);
             }
             else
             {
