@@ -74,15 +74,20 @@ namespace GeminiTranslateExplain.Services
 
             _sb.Clear();
             var config = AppConfig.Instance;
-            if (config.SelectedGeminiModel.Name.Contains("gpt"))
+            if (config.SelectedAiModel.Type == AiType.openai)
             {
-                var request = OpenAiApiRequestModels.CreateRequest(config.SelectedGeminiModel.Name, GetSystemInstruction(), _messages.AsSpan());
+                var request = OpenAiApiRequestModels.CreateRequest(config.SelectedAiModel.Name, GetSystemInstruction(), _messages.AsSpan());
                 await _openAiApiClient.StreamGenerateContentAsync(config.OpenAiApiKey, request, OnGetContentAction);
+            }
+            else if (config.SelectedAiModel.Type == AiType.gemini)
+            {
+                var request = GeminiApiRequestModels.CreateRequest(GetSystemInstruction(), _messages.AsSpan());
+                await _geminiApiClient.StreamGenerateContentAsync(config.GeminiApiKey, request, config.SelectedAiModel.Name, OnGetContentAction);
             }
             else
             {
-                var request = GeminiApiRequestModels.CreateRequest(GetSystemInstruction(), _messages.AsSpan());
-                await _geminiApiClient.StreamGenerateContentAsync(config.GeminiApiKey, request, config.SelectedGeminiModel.Name, OnGetContentAction);
+                _isRequesting = false;
+                return "サポートされていないAIモデルです";
             }
             var result = _sb.ToString();
 

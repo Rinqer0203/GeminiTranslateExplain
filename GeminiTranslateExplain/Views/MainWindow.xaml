@@ -71,28 +71,8 @@
             HorizontalAlignment="Right"
             HorizontalContentAlignment="Center"
             FontSize="14"
-            ItemsSource="{Binding GeminiModelNames}"
-            SelectedItem="{Binding SelectedGeminiModel, Mode=TwoWay}">
-            <ComboBox.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock
-                        Text="{Binding Name}"
-                        ToolTipService.BetweenShowDelay="200"
-                        ToolTipService.InitialShowDelay="300"
-                        ToolTipService.ShowDuration="5000">
-                        <TextBlock.ToolTip>
-                            <ToolTip>
-                                <StackPanel>
-                                    <TextBlock Text="{Binding Rpm, StringFormat='RPM: {0}'}" />
-                                    <TextBlock Text="{Binding Tpm, StringFormat='TPM: {0}'}" />
-                                    <TextBlock Text="{Binding Rpd, StringFormat='RPD: {0}'}" />
-                                </StackPanel>
-                            </ToolTip>
-                        </TextBlock.ToolTip>
-                    </TextBlock>
-                </DataTemplate>
-            </ComboBox.ItemTemplate>
-        </ComboBox>
+            ItemsSource="{Binding AiModels}"
+            SelectedItem="{Binding SelectedAiModel, Mode=TwoWay}" />
 
         <Border
             Grid.Row="1"

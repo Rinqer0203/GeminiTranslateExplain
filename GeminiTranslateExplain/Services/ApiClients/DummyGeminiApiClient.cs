@@ -14,9 +14,11 @@ namespace GeminiTranslateExplain.Services.ApiClients
                 var sb = new StringBuilder();
                 sb.AppendLine("Dummy Gemini API Response:");
                 sb.AppendLine($"System Instruction: {string.Join(" ", body.System_instruction.Parts.Select(p => p.Text))}");
+                sb.AppendLine("--------------------------");
+
                 foreach (var content in body.Contents)
                 {
-                    sb.AppendLine($"{content.Role}: {string.Join(" ", content.Parts.Select(p => p.Text))}");
+                    sb.AppendLine($"{content.Role} : {string.Join(" ", content.Parts.Select(p => p.Text))}");
                 }
 
                 string fullText = sb.ToString();

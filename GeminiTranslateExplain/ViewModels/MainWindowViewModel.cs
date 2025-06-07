@@ -8,7 +8,7 @@ namespace GeminiTranslateExplain
 {
     internal partial class MainWindowViewModel : ObservableObject, IProgressTextReceiver
     {
-        public AIModel[] GeminiModelNames { get; } = UsableAiModels.Models;
+        public AIModel[] AiModels { get; } = UsableAiModels.Models;
 
         string IProgressTextReceiver.Text
         {
@@ -17,7 +17,7 @@ namespace GeminiTranslateExplain
 
 
         [ObservableProperty]
-        private AIModel _selectedGeminiModel = AppConfig.Instance.SelectedGeminiModel;
+        private AIModel _selectedAiModel = AppConfig.Instance.SelectedAiModel;
 
         [ObservableProperty]
         private string _sourceText = string.Empty;
@@ -75,9 +75,9 @@ namespace GeminiTranslateExplain
             settingWindow.ShowDialog();  // モーダル表示
         }
 
-        partial void OnSelectedGeminiModelChanged(AIModel value)
+        partial void OnSelectedAiModelChanged(AIModel value)
         {
-            AppConfig.Instance.SelectedGeminiModel = value;
+            AppConfig.Instance.SelectedAiModel = value;
         }
 
         partial void OnUseCustomInstructionChanged(bool value)

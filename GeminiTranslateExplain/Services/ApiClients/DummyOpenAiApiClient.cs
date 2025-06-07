@@ -15,10 +15,11 @@ namespace GeminiTranslateExplain.Services.ApiClients
                 sb.AppendLine("Dummy OpenAI API Response:");
                 sb.AppendLine($"Model: {request.model}");
                 sb.AppendLine("Messages:");
+                sb.AppendLine("--------------------------");
 
                 foreach (var msg in request.messages)
                 {
-                    sb.AppendLine($"{msg.role}: {msg.content}");
+                    sb.AppendLine($"{msg.role} : {msg.content}");
                 }
 
                 string fullText = sb.ToString();
