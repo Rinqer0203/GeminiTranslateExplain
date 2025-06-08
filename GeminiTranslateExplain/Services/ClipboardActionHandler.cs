@@ -17,13 +17,14 @@ namespace GeminiTranslateExplain.Services
         /// <summary>
         /// クリップボード更新のアクションを実行する間隔 (ミリ秒)
         /// </summary>
-        private const int IntervalMs = 1000;
+        private const int IntervalMaxMs = 500;
+        private const int IntervalMinMs = 100;
         private const int RetryCount = 5;
         private const int RetryDelayMs = 10;
 
-        public ClipboardActionHandler(Window mainWindow, Action<string> ClipBoardAction)
+        public ClipboardActionHandler(Window mainWindow, Action<string> clipBoardAction)
         {
-            _clipboardAction = ClipBoardAction;
+            _clipboardAction = clipBoardAction;
             _clipboardMonitor = new ClipboardMonitor(mainWindow, OnClipboardUpdate);
         }
 
@@ -89,8 +90,8 @@ namespace GeminiTranslateExplain.Services
             var intervalMs = (now - _lastUpdateTime).TotalMilliseconds;
 
             // 特定のテキストボックスで、コピー時に2回クリップボードが更新されることがあるため、
-            // 前回の更新からの時間が50ミリ秒未満、またはクリップボードにテキストがない場合は何もしない
-            if (intervalMs < 100 || SafeClipboardContainsText() == false)
+            // 前回の更新からの時間が最小間隔未満、またはクリップボードにテキストがない場合は何もしない
+            if (intervalMs < IntervalMinMs || SafeClipboardContainsText() == false)
             {
                 return;
             }
@@ -101,7 +102,7 @@ namespace GeminiTranslateExplain.Services
                 return;
 
             // 前回の更新からの時間が指定した間隔以内で、かつクリップボードの内容が前回と同じ場合はアクションを実行
-            if (intervalMs <= IntervalMs && clipboardText == _lastText)
+            if (intervalMs <= IntervalMaxMs && clipboardText == _lastText)
             {
                 _clipboardAction.Invoke(clipboardText);
             }
