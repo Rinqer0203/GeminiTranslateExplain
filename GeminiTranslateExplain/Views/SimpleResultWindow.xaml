@@ -33,8 +33,8 @@
             <Grid>
 
                 <Grid.RowDefinitions>
-                    <RowDefinition />
-                    <RowDefinition Height="30" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <!--  バツボタン  -->
@@ -81,7 +81,8 @@
                     FontSize="15"
                     Text="{Binding QuestionText, UpdateSourceTrigger=PropertyChanged}"
                     TextAlignment="Left"
-                    TextWrapping="Wrap">
+                    TextWrapping="Wrap"
+                    VerticalScrollBarVisibility="Disabled">
 
                     <TextBox.InputBindings>
                         <KeyBinding Command="{Binding SendQuestionCommand}" Gesture="Enter" />
