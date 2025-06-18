@@ -5,6 +5,8 @@ VisualStudioVersion = 17.14.36109.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeminiTranslateExplain", "GeminiTranslateExplain\GeminiTranslateExplain.csproj", "{66BE9F1D-158C-45D2-82DC-5C016132BD74}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeminiTranslateExplainTest", "GeminiTranslateExplainTest\GeminiTranslateExplainTest.csproj", "{0FD909E8-CAD4-4A4E-9E18-94216270253F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{66BE9F1D-158C-45D2-82DC-5C016132BD74}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{66BE9F1D-158C-45D2-82DC-5C016132BD74}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{66BE9F1D-158C-45D2-82DC-5C016132BD74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FD909E8-CAD4-4A4E-9E18-94216270253F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FD909E8-CAD4-4A4E-9E18-94216270253F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FD909E8-CAD4-4A4E-9E18-94216270253F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FD909E8-CAD4-4A4E-9E18-94216270253F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
