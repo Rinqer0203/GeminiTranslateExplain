@@ -1,6 +1,6 @@
 # GeminiTranslateExplain
 
-Windows向けのシンプルな翻訳＆Q&Aツール
+Windows向けの翻訳・Q&Aツール
 
 ## 概要
 **GeminiTranslateExplain** は、WPF（.NET）で開発されたWindows用アプリケーションです。  
