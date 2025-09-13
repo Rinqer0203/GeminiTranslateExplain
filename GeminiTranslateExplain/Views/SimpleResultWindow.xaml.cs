@@ -10,6 +10,7 @@ namespace GeminiTranslateExplain
         public SimpleResultWindow()
         {
             InitializeComponent();
+
             this.Loaded += (s, e) =>
             {
                 // ウィンドウのサイズを設定
@@ -28,6 +29,12 @@ namespace GeminiTranslateExplain
                         AppConfig.Instance.SimpleResultWindowSize = new WindowSize(this.Width, this.Height);
                     }
                 };
+            };
+
+            // 非アクティブ時にウィンドウを閉じる
+            this.Deactivated += (s, e) =>
+            {
+                this.Hide();
             };
         }
 

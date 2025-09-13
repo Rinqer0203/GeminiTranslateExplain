@@ -14,6 +14,7 @@ namespace GeminiTranslateExplain
 
         private ClipboardActionHandler? _clipboardActionHandler;
         private TrayManager? _trayManager;
+        private ForegroundWatcher? _foregroundWatcher;
 
 
         protected override void OnStartup(StartupEventArgs e)
@@ -56,6 +57,23 @@ namespace GeminiTranslateExplain
             };
             this.MainWindow = mainWindow;
 
+            // Foreground change: hide SimpleResultWindow when focus moves to another window/app
+            _foregroundWatcher = new ForegroundWatcher();
+            _foregroundWatcher.ForegroundChanged += (hwnd) =>
+            {
+                var srw = Services.WindowManager.GetView<SimpleResultWindow>();
+                if (srw == null || !srw.IsVisible) return;
+                var srwHandle = new System.Windows.Interop.WindowInteropHelper(srw).Handle;
+                if (hwnd != srwHandle)
+                {
+                    srw.Dispatcher.Invoke(() =>
+                    {
+                        if (srw.IsVisible)
+                            srw.Hide();
+                    });
+                }
+            };
+
             // SimpleResultWindow初期化
             var simpleResultWindow = new SimpleResultWindow();
             if (simpleResultWindow.DataContext is SimpleResultWindowViewModel simpleResultVM)
@@ -91,8 +109,13 @@ namespace GeminiTranslateExplain
                 else if (AppConfig.Instance.SelectedResultWindowType == WindowType.SimpleResultWindow)
                 {
                     var window = WindowManager.GetView<SimpleResultWindow>();
-                    ShowWindow(window);
-                    WindowPositioner.SetWindowPosition(window);
+                    if (window != null)
+                    {
+                        window.Owner = this.MainWindow;
+                        window.ShowActivated = true;
+                        ShowWindow(window);
+                        WindowPositioner.SetWindowPosition(window);
+                    }
                 }
 
                 var geminiApiManager = ApiRequestManager.Instance;
@@ -112,6 +135,7 @@ namespace GeminiTranslateExplain
         {
             _clipboardActionHandler?.Dispose();
             _trayManager?.Dispose();
+            _foregroundWatcher?.Dispose();
             AppConfig.Instance.SaveConfigJson();
             _mutex?.ReleaseMutex();
             _mutex?.Dispose();
