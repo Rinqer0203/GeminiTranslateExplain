@@ -58,6 +58,8 @@ namespace GeminiTranslateExplain.Models
 
         public bool UseDummyApi { get; set; } = false;
 
+        public bool DebugClipboardAction { get; set; } = false;
+
         // ここまでJsonSerializerでシリアライズされるプロパティ
 
         private static AppConfig LoadConfig()

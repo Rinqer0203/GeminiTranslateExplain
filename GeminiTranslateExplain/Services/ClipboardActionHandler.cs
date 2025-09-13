@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using GeminiTranslateExplain.Models;
+using System.Windows;
 using Clipboard = System.Windows.Clipboard;
 
 namespace GeminiTranslateExplain.Services
@@ -104,6 +105,8 @@ namespace GeminiTranslateExplain.Services
             // 前回の更新からの時間が指定した間隔以内で、かつクリップボードの内容が前回と同じ場合はアクションを実行
             if (intervalMs <= IntervalMaxMs && clipboardText == _lastText)
             {
+                if (AppConfig.Instance.DebugClipboardAction)
+                    clipboardText += $" (Debug: interval {intervalMs}ms)";
                 _clipboardAction.Invoke(clipboardText);
             }
 

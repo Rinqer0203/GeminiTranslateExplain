@@ -10,7 +10,6 @@ namespace GeminiTranslateExplain
     public partial class App : System.Windows.Application
     {
         private static Mutex? _mutex;
-        private static readonly object ClipboardLock = new object(); // クリップボード操作の同期用
 
         private ClipboardActionHandler? _clipboardActionHandler;
         private TrayManager? _trayManager;
@@ -118,11 +117,11 @@ namespace GeminiTranslateExplain
                     }
                 }
 
-                var geminiApiManager = ApiRequestManager.Instance;
-                geminiApiManager.ClearMessages();
-                geminiApiManager.AddUserMessage(text);
+                var apiManager = ApiRequestManager.Instance;
+                apiManager.ClearMessages();
+                apiManager.AddUserMessage(text);
 
-                var result = await geminiApiManager.RequestTranslation();
+                var result = await apiManager.RequestTranslation();
                 if (AppConfig.Instance.SelectedResultWindowType == WindowType.Clipboard)
                 {
                     _clipboardActionHandler?.SafeSetClipboardText(result);
