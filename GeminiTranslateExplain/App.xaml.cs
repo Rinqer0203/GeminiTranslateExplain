@@ -1,9 +1,9 @@
 ﻿using GeminiTranslateExplain.Models;
 using GeminiTranslateExplain.Services;
-using MaterialDesignColors;
 using MaterialDesignThemes.Wpf;
 using Microsoft.Win32;
 using System;
+using System.Linq;
 using System.Media;
 using System.Windows;
 using System.Windows.Input;
@@ -23,6 +23,7 @@ namespace GeminiTranslateExplain
         private int? _screenshotHotKeyId;
         private bool _isScreenshotCapturing;
         private Views.ScreenshotOverlayWindow? _activeScreenshotOverlay;
+        private DateTime _ignoreSimpleResultWindowHideUntil = DateTime.MinValue;
 
 
         protected override void OnStartup(StartupEventArgs e)
@@ -42,17 +43,7 @@ namespace GeminiTranslateExplain
             base.OnStartup(e);
 
             // wpfのテーマを設定
-            _bundledTheme = new BundledTheme
-            {
-                BaseTheme = ResolveBaseTheme(),
-                PrimaryColor = PrimaryColor.Indigo,
-                SecondaryColor = SecondaryColor.DeepPurple
-            };
-            Resources.MergedDictionaries.Add(_bundledTheme);
-            Resources.MergedDictionaries.Add(new ResourceDictionary
-            {
-                Source = new Uri("pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml")
-            });
+            _bundledTheme = Resources.MergedDictionaries.OfType<BundledTheme>().FirstOrDefault();
             ApplyTheme();
 
             //　MainWindow初期化
@@ -70,6 +61,9 @@ namespace GeminiTranslateExplain
             _foregroundWatcher = new ForegroundWatcher();
             _foregroundWatcher.ForegroundChanged += (hwnd) =>
             {
+                if (DateTime.UtcNow < _ignoreSimpleResultWindowHideUntil)
+                    return;
+
                 var srw = Services.WindowManager.GetView<SimpleResultWindow>();
                 if (srw == null || !srw.IsVisible) return;
                 var srwHandle = new System.Windows.Interop.WindowInteropHelper(srw).Handle;
@@ -139,7 +133,7 @@ namespace GeminiTranslateExplain
             return false;
         }
 
-        private BaseTheme ResolveBaseTheme()
+        private static BaseTheme ResolveBaseTheme()
         {
             return AppConfig.Instance.ThemeMode switch
             {
@@ -302,6 +296,7 @@ namespace GeminiTranslateExplain
                 var window = WindowManager.GetView<SimpleResultWindow>();
                 if (window != null)
                 {
+                    _ignoreSimpleResultWindowHideUntil = DateTime.UtcNow.AddMilliseconds(750);
                     window.Owner = this.MainWindow;
                     window.ShowActivated = true;
                     ShowWindow(window);

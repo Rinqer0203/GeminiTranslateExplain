@@ -29,56 +29,53 @@
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
-        <Button
-            Grid.Row="0"
-            Grid.Column="0"
-            Width="30"
-            Height="30"
-            Margin="5"
-            HorizontalAlignment="Left"
-            HorizontalContentAlignment="Center"
-            Command="{Binding OpenSettingWindowCommand}"
-            Style="{StaticResource MaterialDesignIconForegroundButton}">
-            <materialDesign:PackIcon
-                Width="17"
-                Height="17"
-                Kind="Cog" />
-
-        </Button>
-
         <StackPanel
             Grid.Row="0"
             Grid.Column="0"
-            Margin="45,0,0,0"
-            HorizontalAlignment="right"
-            Orientation="Horizontal">
-            <TextBlock
-                Margin="0,0,8,0"
-                VerticalAlignment="Center"
-                FontSize="13"
-                Text="プロンプト" />
-            <ComboBox
-                Width="160"
-                Height="30"
-                Margin="0,0,10,0"
-                HorizontalContentAlignment="Stretch"
-                VerticalContentAlignment="Center"
-                FontSize="14"
-                ItemsSource="{Binding PromptProfiles}"
-                SelectedItem="{Binding SelectedPromptProfile, Mode=TwoWay}">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock
-                            HorizontalAlignment="Stretch"
-                            Text="{Binding Name}"
-                            TextAlignment="Center" />
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
+            Grid.ColumnSpan="2"
+            Margin="5,0,20,0"
+            Orientation="Horizontal"
+            VerticalAlignment="Center">
             <Button
                 Width="30"
                 Height="30"
-                Margin="0,0,10,0"
+                HorizontalContentAlignment="Center"
+                Command="{Binding OpenSettingWindowCommand}"
+                Style="{StaticResource MaterialDesignIconForegroundButton}">
+                <materialDesign:PackIcon
+                    Width="17"
+                    Height="17"
+                    Kind="Cog" />
+            </Button>
+            <ComboBox
+                Width="190"
+                Height="36"
+                Margin="12,0,8,0"
+                HorizontalContentAlignment="Stretch"
+                VerticalContentAlignment="Center"
+                materialDesign:HintAssist.Hint="モデル"
+                FontSize="14"
+                Padding="10,6,10,4"
+                DisplayMemberPath="Name"
+                ItemsSource="{Binding AiModels}"
+                SelectedItem="{Binding SelectedAiModel, Mode=TwoWay}"
+                Style="{StaticResource MaterialDesignOutlinedComboBox}" />
+            <ComboBox
+                Width="160"
+                Height="36"
+                Margin="0,0,8,0"
+                HorizontalContentAlignment="Stretch"
+                VerticalContentAlignment="Center"
+                materialDesign:HintAssist.Hint="プロンプト"
+                FontSize="14"
+                Padding="10,6,10,4"
+                DisplayMemberPath="Name"
+                ItemsSource="{Binding PromptProfiles}"
+                SelectedItem="{Binding SelectedPromptProfile, Mode=TwoWay}"
+                Style="{StaticResource MaterialDesignOutlinedComboBox}" />
+            <Button
+                Width="30"
+                Height="30"
                 Command="{Binding OpenPromptEditorWindowCommand}"
                 Style="{StaticResource MaterialDesignIconForegroundButton}">
                 <materialDesign:PackIcon
@@ -87,26 +84,6 @@
                     Kind="Pencil" />
             </Button>
         </StackPanel>
-
-        <ComboBox
-            Grid.Row="0"
-            Grid.Column="1"
-            Width="190"
-            Height="30"
-            Margin="0,0,20,0"
-            HorizontalAlignment="Right"
-            HorizontalContentAlignment="Center"
-            FontSize="14"
-            ItemsSource="{Binding AiModels}"
-            SelectedItem="{Binding SelectedAiModel, Mode=TwoWay}" />
-        <TextBlock
-            Grid.Row="0"
-            Grid.Column="1"
-            Margin="0,0,220,0"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Center"
-            FontSize="13"
-            Text="モデル" />
 
         <Border
             Grid.Row="1"
@@ -157,11 +134,6 @@
                                 BorderThickness="1"
                                 CornerRadius="10">
                                 <StackPanel>
-                                    <TextBlock
-                                        x:Name="MessageLabel"
-                                        FontSize="12"
-                                        Foreground="{DynamicResource ChatLabelForeground}"
-                                        Text="{Binding DisplayName}" />
                                     <TextBox
                                         x:Name="MessageBody"
                                         FontSize="15"
@@ -192,7 +164,6 @@
                                 <Setter TargetName="MessageBubble" Property="Background" Value="{DynamicResource ChatAiBubbleBackground}" />
                                 <Setter TargetName="MessageBubble" Property="BorderBrush" Value="{DynamicResource ChatAiBubbleBorder}" />
                                 <Setter TargetName="MessageBubble" Property="HorizontalAlignment" Value="Right" />
-                                <Setter TargetName="MessageLabel" Property="Foreground" Value="{DynamicResource ChatUserBubbleForeground}" />
                                 <Setter TargetName="MessageBody" Property="Foreground" Value="{DynamicResource ChatUserBubbleForeground}" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Role}" Value="assistant">
@@ -200,7 +171,6 @@
                                 <Setter TargetName="MessageBubble" Property="BorderBrush" Value="Transparent" />
                                 <Setter TargetName="MessageBubble" Property="BorderThickness" Value="0" />
                                 <Setter TargetName="MessageBubble" Property="HorizontalAlignment" Value="Left" />
-                                <Setter TargetName="MessageLabel" Property="Foreground" Value="{DynamicResource ChatLabelForeground}" />
                                 <Setter TargetName="MessageBody" Property="Foreground" Value="{DynamicResource ChatAiBubbleForeground}" />
                             </DataTrigger>
                         </DataTemplate.Triggers>
