@@ -10,9 +10,11 @@
 	<ApplicationIcon>main_icon.ico</ApplicationIcon>
 	  
 	<!-- 自己完結ビルドでも1つの実行ファイルにまとめられる設定 -->
+	<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 	<IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
 	<!-- サイズ削減 -->
 	<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+	<PublishTrimmed>false</PublishTrimmed>
 	  
   </PropertyGroup>
 	
@@ -50,6 +52,21 @@
     <Resource Include="icon.ico" />
     <Resource Include="failed.ico" />
     <Resource Include="processing.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
