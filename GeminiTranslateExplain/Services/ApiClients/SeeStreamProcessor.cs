@@ -9,7 +9,8 @@ namespace GeminiTranslateExplain.Services.ApiClients
         public static async Task ProcessStreamAsync(
             Stream stream,
             Func<string, string?> extractContentFromJson,
-            Action<string> onGetContent)
+            Action<string> onGetContent,
+            Action<string> onError)
         {
             using var reader = new StreamReader(stream, Encoding.UTF8);
             while (!reader.EndOfStream)
@@ -21,16 +22,23 @@ namespace GeminiTranslateExplain.Services.ApiClients
                 var jsonPart = line["data:".Length..].Trim();
                 if (jsonPart == "[DONE]") break;
 
-                var content = extractContentFromJson(jsonPart);
-                if (!string.IsNullOrEmpty(content))
-                    onGetContent(content);
+                try
+                {
+                    var content = extractContentFromJson(jsonPart);
+                    if (!string.IsNullOrEmpty(content))
+                        onGetContent(content);
+                }
+                catch (Exception ex)
+                {
+                    onError($"({ex.Message})");
+                }
             }
         }
 
-        public static async Task HandleErrorAsync(HttpResponseMessage response, Action<string> onGetContent)
+        public static async Task HandleErrorAsync(HttpResponseMessage response, Action<string> onError)
         {
             var error = await response.Content.ReadAsStringAsync();
-            onGetContent.Invoke($"(エラー: {response.StatusCode})\n{error}");
+            onError.Invoke($"(エラー: {response.StatusCode})\n{error}");
         }
     }
 }

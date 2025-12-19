@@ -1,10 +1,20 @@
-﻿namespace GeminiTranslateExplain.Services
+﻿using System;
+using System.Drawing;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace GeminiTranslateExplain.Services
 {
     public class TrayManager : IDisposable
     {
         private readonly NotifyIcon _notifyIcon;
         private readonly Icon _defaultIcon;
+        private readonly Icon _checkIcon;
+        private readonly Icon _processingIcon;
+        private readonly Icon _failedIcon;
         private CancellationTokenSource? _iconChangeTokenSource;
+        private bool _isProcessing;
 
         public TrayManager(Action onShowWindow, Action onExit)
         {
@@ -14,7 +24,14 @@
                 throw new InvalidOperationException("アイコンファイルが見つかりません。");
             }
 
-            _defaultIcon = new Icon(iconStream);
+            using (var baseIcon = new Icon(iconStream))
+            {
+                _defaultIcon = (Icon)baseIcon.Clone();
+            }
+
+            _checkIcon = LoadIconFromResource("check.ico");
+            _processingIcon = LoadIconFromResource("processing.ico");
+            _failedIcon = LoadIconFromResource("failed.ico");
 
             _notifyIcon = new NotifyIcon
             {
@@ -50,24 +67,70 @@
 
             try
             {
-                var streamResource = System.Windows.Application.GetResourceStream(new Uri("check.ico", UriKind.Relative))?.Stream;
-                if (streamResource == null) return;
-
-                using var tempIcon = new Icon(streamResource);
-                _notifyIcon.Icon = tempIcon;
+                _notifyIcon.Icon = _checkIcon;
 
                 await Task.Delay(durationMs, token);
             }
             catch (TaskCanceledException) { }
             finally
             {
-                _notifyIcon.Icon = _defaultIcon;
+                _notifyIcon.Icon = _isProcessing ? _processingIcon : _defaultIcon;
             }
+        }
+
+        public async void ChangeFailedTemporaryIcon(int durationMs = 3000)
+        {
+            _iconChangeTokenSource?.Cancel();
+
+            _iconChangeTokenSource = new CancellationTokenSource();
+            var token = _iconChangeTokenSource.Token;
+
+            try
+            {
+                _notifyIcon.Icon = _failedIcon;
+
+                await Task.Delay(durationMs, token);
+            }
+            catch (TaskCanceledException) { }
+            finally
+            {
+                _notifyIcon.Icon = _isProcessing ? _processingIcon : _defaultIcon;
+            }
+        }
+
+        public void SetProcessingIcon(bool isProcessing)
+        {
+            _isProcessing = isProcessing;
+            if (isProcessing)
+            {
+                _iconChangeTokenSource?.Cancel();
+                _notifyIcon.Icon = _processingIcon;
+                return;
+            }
+
+            _notifyIcon.Icon = _defaultIcon;
         }
 
         public void Dispose()
         {
             _notifyIcon.Dispose();
+            _defaultIcon.Dispose();
+            _checkIcon.Dispose();
+            _processingIcon.Dispose();
+            _failedIcon.Dispose();
+        }
+
+        private static Icon LoadIconFromResource(string fileName)
+        {
+            var resourceUri = new Uri($"pack://application:,,,/{fileName}", UriKind.Absolute);
+            var streamResource = System.Windows.Application.GetResourceStream(resourceUri)?.Stream;
+            if (streamResource == null)
+            {
+                throw new InvalidOperationException($"アイコンファイルが見つかりません: {fileName}");
+            }
+
+            using var baseIcon = new Icon(streamResource);
+            return (Icon)baseIcon.Clone();
         }
     }
 }

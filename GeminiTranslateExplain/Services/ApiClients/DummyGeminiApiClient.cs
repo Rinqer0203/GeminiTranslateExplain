@@ -5,7 +5,12 @@ namespace GeminiTranslateExplain.Services.ApiClients
 {
     internal class DummyGeminiApiClient : IGeminiApiClient
     {
-        Task IGeminiApiClient.StreamGenerateContentAsync(string apiKey, GeminiApiRequestModels.Request body, string modelName, Action<string> onGetContent)
+        Task IGeminiApiClient.StreamGenerateContentAsync(
+            string apiKey,
+            GeminiApiRequestModels.Request body,
+            string modelName,
+            Action<string> onGetContent,
+            Action<string> onError)
         {
             return Task.Run(async () =>
             {

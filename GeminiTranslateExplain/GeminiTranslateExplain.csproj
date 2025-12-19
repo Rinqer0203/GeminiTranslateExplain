@@ -20,6 +20,8 @@
   <ItemGroup>
     <None Remove="check.ico" />
     <None Remove="icon.ico" />
+    <None Remove="failed.ico" />
+    <None Remove="processing.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -46,6 +48,8 @@
   <ItemGroup>
     <Resource Include="check.ico" />
     <Resource Include="icon.ico" />
+    <Resource Include="failed.ico" />
+    <Resource Include="processing.ico" />
   </ItemGroup>
 
   <ItemGroup>

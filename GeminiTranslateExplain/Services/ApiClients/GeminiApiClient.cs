@@ -22,9 +22,14 @@ namespace GeminiTranslateExplain.Services.ApiClients
         /// <param name="request">送信するリクエストのコンテンツ</param>
         /// <param name="modelName">使用する Gemini モデル</param>
         /// <param name="onGetContent">生成されたテキストコンテンツが届いた際に呼び出されるコールバック</param>
+        /// <param name="onError">エラーが発生した際に呼び出されるコールバック</param>
         /// <returns>非同期タスク</returns>
         async Task IGeminiApiClient.StreamGenerateContentAsync(
-            string apiKey, GeminiApiRequestModels.Request request, string modelName, Action<string> onGetContent)
+            string apiKey,
+            GeminiApiRequestModels.Request request,
+            string modelName,
+            Action<string> onGetContent,
+            Action<string> onError)
         {
             var path = $"{BaseUrl}models/{modelName}:streamGenerateContent?alt=sse&key={apiKey}";
 
@@ -35,12 +40,12 @@ namespace GeminiTranslateExplain.Services.ApiClients
             using var response = await _httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
             if (!response.IsSuccessStatusCode)
             {
-                await SseStreamProcessor.HandleErrorAsync(response, onGetContent);
+                await SseStreamProcessor.HandleErrorAsync(response, onError);
                 return;
             }
 
             using var stream = await response.Content.ReadAsStreamAsync();
-            await Task.Run(() => SseStreamProcessor.ProcessStreamAsync(stream, ExtractContentFromJson, onGetContent));
+            await Task.Run(() => SseStreamProcessor.ProcessStreamAsync(stream, ExtractContentFromJson, onGetContent, onError));
         }
 
         /// <summary>
@@ -62,7 +67,7 @@ namespace GeminiTranslateExplain.Services.ApiClients
             }
             catch (Exception ex)
             {
-                return $"(JSONパースエラー: {ex.Message})";
+                throw new InvalidOperationException($"JSONパースエラー: {ex.Message}", ex);
             }
         }
     }

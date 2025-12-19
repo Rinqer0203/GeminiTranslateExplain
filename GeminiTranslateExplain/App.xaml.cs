@@ -88,6 +88,19 @@ namespace GeminiTranslateExplain
             };
 
             _trayManager = new TrayManager(() => ShowWindow(mainWindow), Shutdown);
+            ApiRequestManager.Instance.RequestStarted += () => _trayManager?.SetProcessingIcon(true);
+            ApiRequestManager.Instance.RequestCompleted += success =>
+            {
+                _trayManager?.SetProcessingIcon(false);
+                if (success)
+                {
+                    _trayManager?.ChangeCheckTemporaryIcon(1000);
+                }
+                else
+                {
+                    _trayManager?.ChangeFailedTemporaryIcon(1500);
+                }
+            };
             DebugManager.Initialize();
 
             if (!AppConfig.Instance.MinimizeToTray)
@@ -216,7 +229,6 @@ namespace GeminiTranslateExplain
             if (AppConfig.Instance.SelectedResultWindowType == WindowType.Clipboard)
             {
                 _clipboardActionHandler?.SafeSetClipboardText(result);
-                _trayManager?.ChangeCheckTemporaryIcon(1000);
             }
         }
 
@@ -308,7 +320,6 @@ namespace GeminiTranslateExplain
             if (AppConfig.Instance.SelectedResultWindowType == WindowType.Clipboard)
             {
                 _clipboardActionHandler?.SafeSetClipboardText(result);
-                _trayManager?.ChangeCheckTemporaryIcon(1000);
             }
         }
 

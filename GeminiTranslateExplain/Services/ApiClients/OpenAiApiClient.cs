@@ -17,7 +17,11 @@ namespace GeminiTranslateExplain.Services.ApiClients
             _httpClient = httpClient;
         }
 
-        public async Task StreamGenerateContentAsync(string apiKey, OpenAiApiRequestModels.Request request, Action<string> onGetContent)
+        public async Task StreamGenerateContentAsync(
+            string apiKey,
+            OpenAiApiRequestModels.Request request,
+            Action<string> onGetContent,
+            Action<string> onError)
         {
             var jsonOptions = new JsonSerializerOptions
             {
@@ -31,13 +35,13 @@ namespace GeminiTranslateExplain.Services.ApiClients
             using var response = await _httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
             if (!response.IsSuccessStatusCode)
             {
-                await SseStreamProcessor.HandleErrorAsync(response, onGetContent);
+                await SseStreamProcessor.HandleErrorAsync(response, onError);
                 return;
             }
 
             using var stream = await response.Content.ReadAsStreamAsync();
 
-            await Task.Run(() => SseStreamProcessor.ProcessStreamAsync(stream, ExtractContentFromJson, onGetContent));
+            await Task.Run(() => SseStreamProcessor.ProcessStreamAsync(stream, ExtractContentFromJson, onGetContent, onError));
         }
 
         private static string? ExtractContentFromJson(string jsonPart)
@@ -57,7 +61,7 @@ namespace GeminiTranslateExplain.Services.ApiClients
             }
             catch (Exception ex)
             {
-                return $"(パースエラー: {ex.Message})";
+                throw new InvalidOperationException($"パースエラー: {ex.Message}", ex);
             }
         }
     }

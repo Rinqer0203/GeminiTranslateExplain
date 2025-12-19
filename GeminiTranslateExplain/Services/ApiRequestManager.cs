@@ -20,6 +20,9 @@ namespace GeminiTranslateExplain.Services
         private readonly StringBuilder _sb = new();
         private readonly List<(string role, string text)> _messages = new(64);
         private readonly List<IProgressTextReceiver> _progressReceivers = new();
+        public event Action? RequestStarted;
+        public event Action<bool>? RequestCompleted;
+        private bool _requestHadError;
 
         private ApiRequestManager()
         {
@@ -72,32 +75,43 @@ namespace GeminiTranslateExplain.Services
             }
 
             _isRequesting = true;
+            RequestStarted?.Invoke();
 
-            _sb.Clear();
-            var config = AppConfig.Instance;
-            if (config.SelectedAiModel.Type == AiType.openai)
+            var success = false;
+            try
             {
-                var request = OpenAiApiRequestModels.CreateRequest(config.SelectedAiModel.Name, GetSystemInstruction(), _messages.AsSpan());
-                await _openAiApiClient.StreamGenerateContentAsync(config.OpenAiApiKey, request, OnGetContentAction);
+                _sb.Clear();
+                _requestHadError = false;
+                var config = AppConfig.Instance;
+                if (config.SelectedAiModel.Type == AiType.openai)
+                {
+                    var request = OpenAiApiRequestModels.CreateRequest(config.SelectedAiModel.Name, GetSystemInstruction(), _messages.AsSpan());
+                    await _openAiApiClient.StreamGenerateContentAsync(config.OpenAiApiKey, request, OnGetContentAction, OnErrorAction);
+                }
+                else if (config.SelectedAiModel.Type == AiType.gemini)
+                {
+                    var request = GeminiApiRequestModels.CreateRequest(GetSystemInstruction(), _messages.AsSpan());
+                    await _geminiApiClient.StreamGenerateContentAsync(config.GeminiApiKey, request, config.SelectedAiModel.Name, OnGetContentAction, OnErrorAction);
+                }
+                else
+                {
+                    _requestHadError = true;
+                    return "サポートされていないAIモデルです";
+                }
+                var result = _sb.ToString();
+
+                // システムの返答のロールをmodelにしているが、
+                // それぞれのCreateRequestで決められたAPIロールに変換されるので問題ない
+                _messages.Add(("model", result));
+
+                success = !_requestHadError;
+                return result;
             }
-            else if (config.SelectedAiModel.Type == AiType.gemini)
-            {
-                var request = GeminiApiRequestModels.CreateRequest(GetSystemInstruction(), _messages.AsSpan());
-                await _geminiApiClient.StreamGenerateContentAsync(config.GeminiApiKey, request, config.SelectedAiModel.Name, OnGetContentAction);
-            }
-            else
+            finally
             {
                 _isRequesting = false;
-                return "サポートされていないAIモデルです";
+                RequestCompleted?.Invoke(success);
             }
-            var result = _sb.ToString();
-
-            // システムの返答のロールをmodelにしているが、
-            // それぞれのCreateRequestで決められたAPIロールに変換されるので問題ない
-            _messages.Add(("model", result));
-
-            _isRequesting = false;
-            return result;
         }
 
         public async Task<string> RequestImageQuestion(byte[] imageBytes)
@@ -112,39 +126,62 @@ namespace GeminiTranslateExplain.Services
                 return "画像データが空です";
 
             _isRequesting = true;
-            _sb.Clear();
+            RequestStarted?.Invoke();
 
-            var config = AppConfig.Instance;
-            if (config.SelectedAiModel.Type != AiType.openai)
+            var success = false;
+            try
+            {
+                _sb.Clear();
+                _requestHadError = false;
+
+                var config = AppConfig.Instance;
+                if (config.SelectedAiModel.Type != AiType.openai)
+                {
+                    _requestHadError = true;
+                    return "画像入力はOpenAIモデルのみ対応しています";
+                }
+
+                var baseRequest = OpenAiApiRequestModels.CreateRequest(config.SelectedAiModel.Name, GetSystemInstruction(), _messages.AsSpan());
+                var messageList = new List<OpenAiApiRequestModels.Message>(baseRequest.messages.Length + 1);
+                messageList.AddRange(baseRequest.messages);
+
+                var imageBase64 = Convert.ToBase64String(imageBytes);
+                var parts = new[]
+                {
+                    new OpenAiApiRequestModels.ContentPart("image_url", image_url: new OpenAiApiRequestModels.ImageUrl($"data:image/png;base64,{imageBase64}"))
+                };
+                messageList.Add(new OpenAiApiRequestModels.Message("user", parts));
+
+                var request = new OpenAiApiRequestModels.Request(config.SelectedAiModel.Name, messageList.ToArray());
+                await _openAiApiClient.StreamGenerateContentAsync(config.OpenAiApiKey, request, OnGetContentAction, OnErrorAction);
+
+                var result = _sb.ToString();
+                _messages.Add(("user", "[画像]"));
+                _messages.Add(("model", result));
+
+                success = !_requestHadError;
+                return result;
+            }
+            finally
             {
                 _isRequesting = false;
-                return "画像入力はOpenAIモデルのみ対応しています";
+                RequestCompleted?.Invoke(success);
             }
-
-            var baseRequest = OpenAiApiRequestModels.CreateRequest(config.SelectedAiModel.Name, GetSystemInstruction(), _messages.AsSpan());
-            var messageList = new List<OpenAiApiRequestModels.Message>(baseRequest.messages.Length + 1);
-            messageList.AddRange(baseRequest.messages);
-
-            var imageBase64 = Convert.ToBase64String(imageBytes);
-            var parts = new[]
-            {
-                new OpenAiApiRequestModels.ContentPart("image_url", image_url: new OpenAiApiRequestModels.ImageUrl($"data:image/png;base64,{imageBase64}"))
-            };
-            messageList.Add(new OpenAiApiRequestModels.Message("user", parts));
-
-            var request = new OpenAiApiRequestModels.Request(config.SelectedAiModel.Name, messageList.ToArray());
-            await _openAiApiClient.StreamGenerateContentAsync(config.OpenAiApiKey, request, OnGetContentAction);
-
-            var result = _sb.ToString();
-            _messages.Add(("user", "[画像]"));
-            _messages.Add(("model", result));
-
-            _isRequesting = false;
-            return result;
         }
 
         private void OnGetContentAction(string text)
         {
+            _sb.Append(text);
+            var currentText = _sb.ToString();
+            foreach (var holder in _progressReceivers)
+            {
+                holder.Text = currentText;
+            }
+        }
+
+        private void OnErrorAction(string text)
+        {
+            _requestHadError = true;
             _sb.Append(text);
             var currentText = _sb.ToString();
             foreach (var holder in _progressReceivers)
