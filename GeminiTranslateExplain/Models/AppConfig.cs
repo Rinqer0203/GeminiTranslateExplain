@@ -44,6 +44,7 @@ namespace GeminiTranslateExplain.Models
             new AiModel("gpt-4o-mini", AiType.openai),
             new AiModel("gpt-4.1-nano", AiType.openai),
             new AiModel("gpt-4.1-mini", AiType.openai),
+            new AiModel("gpt-4.1", AiType.openai),
             new AiModel("gpt-5-mini", AiType.openai),
             new AiModel("gpt-5-nano", AiType.openai),
             new AiModel("gpt-5.2", AiType.openai),
