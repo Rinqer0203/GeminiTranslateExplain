@@ -1,4 +1,6 @@
 using GeminiTranslateExplain.Models;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
@@ -8,12 +10,14 @@ namespace GeminiTranslateExplain.Services
 {
     public class GlobalHotKeyManager : IDisposable
     {
+        private const int PrimaryHotKeyId = 0x1000;
+
         private readonly Window _window;
         private readonly nint _hwnd;
         private readonly HwndSource _hwndSource;
+        private readonly Dictionary<int, Action> _callbacks = new();
         private bool _disposed;
-        private bool _registered;
-        private int _hotKeyId;
+        private int _nextId = PrimaryHotKeyId + 1;
 
         private const int WM_HOTKEY = 0x0312;
         private const int ModAlt = 0x0001;
@@ -42,30 +46,46 @@ namespace GeminiTranslateExplain.Services
         public bool Register(HotKeyDefinition hotKey)
         {
             Unregister();
+            return RegisterInternal(PrimaryHotKeyId, hotKey, () => HotKeyPressed?.Invoke());
+        }
 
-            _hotKeyId = 0x1000;
-            int modifiers = ConvertModifiers(hotKey.Modifiers);
-            int vk = KeyInterop.VirtualKeyFromKey(hotKey.Key);
-
-            _registered = RegisterHotKey(_hwnd, _hotKeyId, modifiers, vk);
-            return _registered;
+        public bool RegisterAdditional(HotKeyDefinition hotKey, Action callback, out int id)
+        {
+            id = _nextId++;
+            return RegisterInternal(id, hotKey, callback);
         }
 
         public void Unregister()
         {
-            if (_registered)
+            if (_callbacks.ContainsKey(PrimaryHotKeyId))
             {
-                UnregisterHotKey(_hwnd, _hotKeyId);
-                _registered = false;
+                UnregisterHotKey(_hwnd, PrimaryHotKeyId);
+                _callbacks.Remove(PrimaryHotKeyId);
+            }
+        }
+
+        public void UnregisterAdditional(int id)
+        {
+            if (id == PrimaryHotKeyId)
+                return;
+
+            if (_callbacks.ContainsKey(id))
+            {
+                UnregisterHotKey(_hwnd, id);
+                _callbacks.Remove(id);
             }
         }
 
         private nint WndProc(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)
         {
-            if (msg == WM_HOTKEY && wParam.ToInt32() == _hotKeyId)
+            if (msg == WM_HOTKEY)
             {
-                HotKeyPressed?.Invoke();
-                handled = true;
+                var id = wParam.ToInt32();
+                if (_callbacks.TryGetValue(id, out var callback))
+                {
+                    callback.Invoke();
+                    handled = true;
+                }
             }
 
             return nint.Zero;
@@ -86,8 +106,25 @@ namespace GeminiTranslateExplain.Services
             if (_disposed) return;
             _disposed = true;
 
-            Unregister();
+            foreach (var id in _callbacks.Keys.ToArray())
+            {
+                UnregisterHotKey(_hwnd, id);
+            }
+            _callbacks.Clear();
             _hwndSource.RemoveHook(WndProc);
+        }
+
+        private bool RegisterInternal(int id, HotKeyDefinition hotKey, Action callback)
+        {
+            int modifiers = ConvertModifiers(hotKey.Modifiers);
+            int vk = KeyInterop.VirtualKeyFromKey(hotKey.Key);
+
+            var registered = RegisterHotKey(_hwnd, id, modifiers, vk);
+            if (registered)
+            {
+                _callbacks[id] = callback;
+            }
+            return registered;
         }
     }
 }

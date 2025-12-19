@@ -173,10 +173,21 @@
                                         Style="{x:Null}"
                                         Text="{Binding Text}"
                                         TextWrapping="Wrap" />
+                                    <Image
+                                        x:Name="MessageImage"
+                                        MaxWidth="360"
+                                        MaxHeight="240"
+                                        Margin="0,8,0,0"
+                                        Source="{Binding ImageSource}"
+                                        Stretch="Uniform"
+                                        Visibility="Visible" />
                                 </StackPanel>
                             </Border>
                         </Grid>
                         <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding ImageSource}" Value="{x:Null}">
+                                <Setter TargetName="MessageImage" Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
                             <DataTrigger Binding="{Binding Role}" Value="user">
                                 <Setter TargetName="MessageBubble" Property="Background" Value="{DynamicResource ChatAiBubbleBackground}" />
                                 <Setter TargetName="MessageBubble" Property="BorderBrush" Value="{DynamicResource ChatAiBubbleBorder}" />

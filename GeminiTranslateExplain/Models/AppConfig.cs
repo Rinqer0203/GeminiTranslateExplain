@@ -88,7 +88,11 @@ namespace GeminiTranslateExplain.Models
 
         public HotKeyDefinition GlobalHotKey { get; set; } = HotKeyDefinition.Default;
 
+        public HotKeyDefinition ScreenshotHotKey { get; set; } = HotKeyDefinition.ScreenshotDefault;
+
         public bool EnableDoubleCopyAction { get; set; } = true;
+
+        public bool ScreenshotStealthMode { get; set; } = false;
 
         // ここまでJsonSerializerでシリアライズされるプロパティ
 
@@ -145,6 +149,11 @@ namespace GeminiTranslateExplain.Models
                 loadedConfig.GlobalHotKey = HotKeyDefinition.Default;
             }
 
+            if (loadedConfig.ScreenshotHotKey.Key == Key.None || loadedConfig.ScreenshotHotKey.Modifiers == ModifierKeys.None)
+            {
+                loadedConfig.ScreenshotHotKey = HotKeyDefinition.ScreenshotDefault;
+            }
+
             return loadedConfig;
         }
 
@@ -162,6 +171,7 @@ namespace GeminiTranslateExplain.Models
         }
 
         public event Action<HotKeyDefinition>? GlobalHotKeyChanged;
+        public event Action<HotKeyDefinition>? ScreenshotHotKeyChanged;
         public event Action<ThemeMode>? ThemeModeChanged;
 
         public void UpdateGlobalHotKey(HotKeyDefinition hotKey)
@@ -171,6 +181,15 @@ namespace GeminiTranslateExplain.Models
 
             GlobalHotKey = hotKey;
             GlobalHotKeyChanged?.Invoke(hotKey);
+        }
+
+        public void UpdateScreenshotHotKey(HotKeyDefinition hotKey)
+        {
+            if (ScreenshotHotKey.Equals(hotKey))
+                return;
+
+            ScreenshotHotKey = hotKey;
+            ScreenshotHotKeyChanged?.Invoke(hotKey);
         }
 
         public void UpdateThemeMode(ThemeMode themeMode)

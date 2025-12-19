@@ -3,8 +3,10 @@ using GeminiTranslateExplain.Services;
 using MaterialDesignColors;
 using MaterialDesignThemes.Wpf;
 using Microsoft.Win32;
+using System;
 using System.Media;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace GeminiTranslateExplain
@@ -18,6 +20,9 @@ namespace GeminiTranslateExplain
         private ForegroundWatcher? _foregroundWatcher;
         private GlobalHotKeyManager? _globalHotKeyManager;
         private BundledTheme? _bundledTheme;
+        private int? _screenshotHotKeyId;
+        private bool _isScreenshotCapturing;
+        private Views.ScreenshotOverlayWindow? _activeScreenshotOverlay;
 
 
         protected override void OnStartup(StartupEventArgs e)
@@ -104,6 +109,8 @@ namespace GeminiTranslateExplain
             _globalHotKeyManager.HotKeyPressed += () => _ = OnGlobalHotKeyPressedAsync();
             UpdateGlobalHotKey(AppConfig.Instance.GlobalHotKey);
             AppConfig.Instance.GlobalHotKeyChanged += UpdateGlobalHotKey;
+            UpdateScreenshotHotKey(AppConfig.Instance.ScreenshotHotKey);
+            AppConfig.Instance.ScreenshotHotKeyChanged += UpdateScreenshotHotKey;
         }
 
         protected override void OnExit(ExitEventArgs e)
@@ -234,6 +241,82 @@ namespace GeminiTranslateExplain
             SystemSounds.Beep.Play();
         }
 
+        private async Task OnScreenshotHotKeyPressedAsync()
+        {
+            if (_isScreenshotCapturing)
+            {
+                _activeScreenshotOverlay?.CancelCapture();
+                return;
+            }
+
+            if (MainWindow?.DataContext is not MainWindowViewModel mainwindowVM)
+                return;
+
+            if (AppConfig.Instance.SelectedAiModel.Type != AiType.openai)
+            {
+                System.Windows.MessageBox.Show("画像入力はOpenAIモデルのみ対応しています。", "スクリーンショット", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            _isScreenshotCapturing = true;
+            Views.ScreenshotOverlayWindow? overlay = null;
+            try
+            {
+                overlay = new Views.ScreenshotOverlayWindow();
+                _activeScreenshotOverlay = overlay;
+                var rect = await overlay.CaptureAsync();
+
+                if (rect == null)
+                    return;
+
+                byte[] imageBytes;
+                try
+                {
+                    imageBytes = ScreenCaptureService.CapturePngBytes(rect.Value);
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show($"スクリーンショットの取得に失敗しました: {ex.Message}", "スクリーンショット", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                await ExecuteImageQuestionAsync(mainwindowVM, imageBytes);
+            }
+            finally
+            {
+                overlay?.Close();
+                _activeScreenshotOverlay = null;
+                _isScreenshotCapturing = false;
+            }
+        }
+
+        private async Task ExecuteImageQuestionAsync(MainWindowViewModel mainwindowVM, byte[] imageBytes)
+        {
+            if (AppConfig.Instance.SelectedResultWindowType == WindowType.MainWindow)
+            {
+                ShowWindow(MainWindow);
+                WindowPositioner.SetWindowPosition(MainWindow);
+            }
+            else if (AppConfig.Instance.SelectedResultWindowType == WindowType.SimpleResultWindow)
+            {
+                var window = WindowManager.GetView<SimpleResultWindow>();
+                if (window != null)
+                {
+                    window.Owner = this.MainWindow;
+                    window.ShowActivated = true;
+                    ShowWindow(window);
+                    WindowPositioner.SetWindowPosition(window);
+                }
+            }
+
+            var result = await mainwindowVM.SubmitImageMessageAsync(imageBytes, true);
+            if (AppConfig.Instance.SelectedResultWindowType == WindowType.Clipboard)
+            {
+                _clipboardActionHandler?.SafeSetClipboardText(result);
+                _trayManager?.ChangeCheckTemporaryIcon(1000);
+            }
+        }
+
         private void UpdateGlobalHotKey(HotKeyDefinition hotKey)
         {
             if (_globalHotKeyManager == null)
@@ -244,6 +327,26 @@ namespace GeminiTranslateExplain
             {
                 System.Windows.MessageBox.Show("グローバルショートカットの登録に失敗しました。他のアプリと競合している可能性があります。", "ショートカット設定", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+        }
+
+        private void UpdateScreenshotHotKey(HotKeyDefinition hotKey)
+        {
+            if (_globalHotKeyManager == null)
+                return;
+
+            if (_screenshotHotKeyId.HasValue)
+            {
+                _globalHotKeyManager.UnregisterAdditional(_screenshotHotKeyId.Value);
+                _screenshotHotKeyId = null;
+            }
+
+            if (_globalHotKeyManager.RegisterAdditional(hotKey, () => _ = OnScreenshotHotKeyPressedAsync(), out var newId))
+            {
+                _screenshotHotKeyId = newId;
+                return;
+            }
+
+            System.Windows.MessageBox.Show("スクリーンショット用ショートカットの登録に失敗しました。他のアプリと競合している可能性があります。", "ショートカット設定", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 }

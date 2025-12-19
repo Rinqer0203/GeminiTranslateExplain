@@ -26,23 +26,49 @@ namespace GeminiTranslateExplain
             if (DataContext is not SettingWindowViewModel vm)
                 return;
 
-            var key = e.Key == Key.System ? e.SystemKey : e.Key;
-            if (IsModifierKey(key))
+            if (!TryBuildHotKey(e, out var hotKey))
             {
                 e.Handled = true;
                 return;
+            }
+
+            vm.SetGlobalHotKey(hotKey.Value);
+            e.Handled = true;
+        }
+
+        private void ScreenshotHotKeyTextBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (DataContext is not SettingWindowViewModel vm)
+                return;
+
+            if (!TryBuildHotKey(e, out var hotKey))
+            {
+                e.Handled = true;
+                return;
+            }
+
+            vm.SetScreenshotHotKey(hotKey.Value);
+            e.Handled = true;
+        }
+
+        private static bool TryBuildHotKey(System.Windows.Input.KeyEventArgs e, out HotKeyDefinition? hotKey)
+        {
+            hotKey = null;
+            var key = e.Key == Key.System ? e.SystemKey : e.Key;
+            if (IsModifierKey(key))
+            {
+                return false;
             }
 
             var modifiers = Keyboard.Modifiers;
             if (modifiers == ModifierKeys.None)
             {
                 System.Windows.MessageBox.Show("修飾キー（Ctrl/Alt/Shift/Win）を含めてください。", "ショートカット設定", MessageBoxButton.OK, MessageBoxImage.Information);
-                e.Handled = true;
-                return;
+                return false;
             }
 
-            vm.SetGlobalHotKey(new HotKeyDefinition(modifiers, key));
-            e.Handled = true;
+            hotKey = new HotKeyDefinition(modifiers, key);
+            return true;
         }
 
         private static bool IsModifierKey(Key key)

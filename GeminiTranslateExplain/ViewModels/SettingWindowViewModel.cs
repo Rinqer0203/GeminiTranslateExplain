@@ -33,10 +33,19 @@ namespace GeminiTranslateExplain
         private bool _enableDoubleCopyAction = AppConfig.Instance.EnableDoubleCopyAction;
 
         [ObservableProperty]
+        private bool _screenshotStealthMode = AppConfig.Instance.ScreenshotStealthMode;
+
+        [ObservableProperty]
         private HotKeyDefinition _globalHotKey = AppConfig.Instance.GlobalHotKey;
 
         [ObservableProperty]
         private string _globalHotKeyDisplay = string.Empty;
+
+        [ObservableProperty]
+        private HotKeyDefinition _screenshotHotKey = AppConfig.Instance.ScreenshotHotKey;
+
+        [ObservableProperty]
+        private string _screenshotHotKeyDisplay = string.Empty;
 
         public SettingWindowViewModel()
         {
@@ -45,6 +54,7 @@ namespace GeminiTranslateExplain
             SelectedResultWindowType = AppConfig.Instance.SelectedResultWindowType;
             SelectedThemeMode = AppConfig.Instance.ThemeMode;
             GlobalHotKeyDisplay = FormatHotKey(GlobalHotKey);
+            ScreenshotHotKeyDisplay = FormatHotKey(ScreenshotHotKey);
         }
 
         public void OnClosed()
@@ -115,15 +125,31 @@ namespace GeminiTranslateExplain
             AppConfig.Instance.EnableDoubleCopyAction = value;
         }
 
+        partial void OnScreenshotStealthModeChanged(bool value)
+        {
+            AppConfig.Instance.ScreenshotStealthMode = value;
+        }
+
         partial void OnGlobalHotKeyChanged(HotKeyDefinition value)
         {
             AppConfig.Instance.UpdateGlobalHotKey(value);
             GlobalHotKeyDisplay = FormatHotKey(value);
         }
 
+        partial void OnScreenshotHotKeyChanged(HotKeyDefinition value)
+        {
+            AppConfig.Instance.UpdateScreenshotHotKey(value);
+            ScreenshotHotKeyDisplay = FormatHotKey(value);
+        }
+
         public void SetGlobalHotKey(HotKeyDefinition hotKey)
         {
             GlobalHotKey = hotKey;
+        }
+
+        public void SetScreenshotHotKey(HotKeyDefinition hotKey)
+        {
+            ScreenshotHotKey = hotKey;
         }
 
         private static string FormatHotKey(HotKeyDefinition hotKey)

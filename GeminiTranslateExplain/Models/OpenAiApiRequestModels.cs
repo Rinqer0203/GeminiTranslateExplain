@@ -1,9 +1,13 @@
-﻿namespace GeminiTranslateExplain.Models
+﻿using System.Collections.Generic;
+
+namespace GeminiTranslateExplain.Models
 {
     public class OpenAiApiRequestModels
     {
-        public record Message(string role, string content);
+        public record Message(string role, object content);
         public record Request(string model, Message[] messages, bool stream = true);
+        public record ImageUrl(string url);
+        public record ContentPart(string type, string? text = null, ImageUrl? image_url = null);
 
         public static Request CreateRequest(string modelName, string instruction, ReadOnlySpan<(string role, string text)> messages)
         {
@@ -20,6 +24,24 @@
             }
 
             return new Request(modelName, messageArray);
+        }
+
+        public static Request CreateImageRequest(string modelName, string instruction, string imageBase64, string? userText = null)
+        {
+            var parts = new List<ContentPart>();
+            if (!string.IsNullOrWhiteSpace(userText))
+            {
+                parts.Add(new ContentPart("text", userText));
+            }
+            parts.Add(new ContentPart("image_url", image_url: new ImageUrl($"data:image/png;base64,{imageBase64}")));
+
+            var messages = new[]
+            {
+                new Message("system", instruction),
+                new Message("user", parts.ToArray())
+            };
+
+            return new Request(modelName, messages);
         }
 
         /// <summary>

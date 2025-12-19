@@ -4,6 +4,9 @@ using GeminiTranslateExplain.Models;
 using GeminiTranslateExplain.Services;
 using GeminiTranslateExplain.ViewModels;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace GeminiTranslateExplain
 {
@@ -96,6 +99,54 @@ namespace GeminiTranslateExplain
             }
 
             return result;
+        }
+
+        public async Task<string> SubmitImageMessageAsync(byte[] imageBytes, bool resetConversation)
+        {
+            if (imageBytes == null || imageBytes.Length == 0)
+                return string.Empty;
+
+            var instance = ApiRequestManager.Instance;
+            if (resetConversation)
+            {
+                instance.ClearMessages();
+                ChatMessages.Clear();
+            }
+
+            const string displayMessage = "";
+            var imageSource = CreateImageSource(imageBytes);
+            ChatMessages.Add(new ChatMessage("user", "あなた", displayMessage, imageSource));
+
+            _streamingMessage = new ChatMessage("assistant", "AI", string.Empty);
+            ChatMessages.Add(_streamingMessage);
+
+            var result = await instance.RequestImageQuestion(imageBytes, displayMessage);
+            if (_streamingMessage != null)
+            {
+                _streamingMessage.Text = result;
+                _streamingMessage = null;
+            }
+
+            return result;
+        }
+
+        private static ImageSource? CreateImageSource(byte[] imageBytes)
+        {
+            try
+            {
+                using var stream = new MemoryStream(imageBytes);
+                var image = new BitmapImage();
+                image.BeginInit();
+                image.CacheOption = BitmapCacheOption.OnLoad;
+                image.StreamSource = stream;
+                image.EndInit();
+                image.Freeze();
+                return image;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         partial void OnSelectedAiModelChanged(AiModel value)

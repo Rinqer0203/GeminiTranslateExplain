@@ -84,6 +84,17 @@
                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
                     Text="{Binding GlobalHotKeyDisplay}" />
 
+                <TextBox
+                    Margin="0,0,0,20"
+                    HorizontalAlignment="Stretch"
+                    materialDesign:HintAssist.Hint="スクリーンショートカットキー"
+                    materialDesign:TextFieldAssist.DecorationVisibility="Visible"
+                    FontSize="15"
+                    IsReadOnly="True"
+                    PreviewKeyDown="ScreenshotHotKeyTextBox_PreviewKeyDown"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                    Text="{Binding ScreenshotHotKeyDisplay}" />
+
                 <CheckBox
                     Grid.Row="0"
                     Grid.Column="1"
@@ -109,6 +120,15 @@
                     HorizontalAlignment="Left"
                     Content="ダブルコピーで翻訳を有効にする"
                     IsChecked="{Binding EnableDoubleCopyAction}"
+                    Style="{StaticResource MaterialDesignCheckBox}" />
+
+                <CheckBox
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Margin="0,0,0,20"
+                    HorizontalAlignment="Left"
+                    Content="スクリーンショットを目立たせないモード"
+                    IsChecked="{Binding ScreenshotStealthMode}"
                     Style="{StaticResource MaterialDesignCheckBox}" />
             </StackPanel>
         </ScrollViewer>

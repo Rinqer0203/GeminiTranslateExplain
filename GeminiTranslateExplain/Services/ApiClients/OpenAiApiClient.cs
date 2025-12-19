@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace GeminiTranslateExplain.Services.ApiClients
 {
@@ -18,10 +19,14 @@ namespace GeminiTranslateExplain.Services.ApiClients
 
         public async Task StreamGenerateContentAsync(string apiKey, OpenAiApiRequestModels.Request request, Action<string> onGetContent)
         {
+            var jsonOptions = new JsonSerializerOptions
+            {
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{BaseUrl}chat/completions");
             requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
             requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
-            requestMessage.Content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+            requestMessage.Content = new StringContent(JsonSerializer.Serialize(request, jsonOptions), Encoding.UTF8, "application/json");
 
             using var response = await _httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
             if (!response.IsSuccessStatusCode)

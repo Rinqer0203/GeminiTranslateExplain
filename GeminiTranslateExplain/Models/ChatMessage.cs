@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Windows.Media;
 
 namespace GeminiTranslateExplain.Models
 {
@@ -10,11 +11,15 @@ namespace GeminiTranslateExplain.Models
         [ObservableProperty]
         private string _text;
 
-        public ChatMessage(string role, string displayName, string text)
+        [ObservableProperty]
+        private ImageSource? _imageSource;
+
+        public ChatMessage(string role, string displayName, string text, ImageSource? imageSource = null)
         {
             Role = role;
             DisplayName = displayName;
             _text = text;
+            _imageSource = imageSource;
         }
     }
 }
