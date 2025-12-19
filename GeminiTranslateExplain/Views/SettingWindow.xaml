@@ -100,7 +100,7 @@
                     Grid.Column="1"
                     Margin="0,0,0,20"
                     HorizontalAlignment="Left"
-                    Content="パソコン起動時に自動起動"
+                    Content="システム起動時に自動起動"
                     IsChecked="{Binding StartupWithWindows}"
                     Style="{StaticResource MaterialDesignCheckBox}" />
 
@@ -127,7 +127,7 @@
                     Grid.Column="1"
                     Margin="0,0,0,20"
                     HorizontalAlignment="Left"
-                    Content="スクリーンショットを目立たせないモード"
+                    Content="透明スクリーンショットモード"
                     IsChecked="{Binding ScreenshotStealthMode}"
                     Style="{StaticResource MaterialDesignCheckBox}" />
             </StackPanel>

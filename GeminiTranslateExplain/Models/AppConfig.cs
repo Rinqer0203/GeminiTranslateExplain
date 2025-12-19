@@ -76,8 +76,6 @@ namespace GeminiTranslateExplain.Models
 
         public WindowSize SimpleResultWindowSize { get; set; } = new WindowSize(-1, -1);
 
-        public bool StartupWithWindows { get; set; } = false;
-
         public bool MinimizeToTray { get; set; } = false;
 
         public bool DebugWindowPosition { get; set; } = false;

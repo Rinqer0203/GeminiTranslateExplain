@@ -24,7 +24,7 @@ namespace GeminiTranslateExplain
         private ThemeMode _selectedThemeMode;
 
         [ObservableProperty]
-        private bool _startupWithWindows = AppConfig.Instance.StartupWithWindows;
+        private bool _startupWithWindows = StartupShortcutExists();
 
         [ObservableProperty]
         private bool _minimizeToTray = AppConfig.Instance.MinimizeToTray;
@@ -84,8 +84,6 @@ namespace GeminiTranslateExplain
 
         partial void OnStartupWithWindowsChanged(bool value)
         {
-            AppConfig.Instance.StartupWithWindows = value;
-
             string appName = "GeminiTranslateExplain";
             string startupFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
             string shortcutPath = Path.Combine(startupFolderPath, $"{appName}.lnk");
@@ -112,6 +110,13 @@ namespace GeminiTranslateExplain
                 {
                     System.IO.File.Delete(shortcutPath);
                 }
+            }
+
+            var exists = StartupShortcutExists();
+            if (_startupWithWindows != exists)
+            {
+                _startupWithWindows = exists;
+                OnPropertyChanged(nameof(StartupWithWindows));
             }
         }
 
@@ -161,6 +166,14 @@ namespace GeminiTranslateExplain
             if ((hotKey.Modifiers & ModifierKeys.Windows) == ModifierKeys.Windows) parts.Add("Win");
             parts.Add(hotKey.Key.ToString());
             return string.Join(" + ", parts);
+        }
+
+        private static bool StartupShortcutExists()
+        {
+            string appName = "GeminiTranslateExplain";
+            string startupFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
+            string shortcutPath = Path.Combine(startupFolderPath, $"{appName}.lnk");
+            return System.IO.File.Exists(shortcutPath);
         }
     }
 }
