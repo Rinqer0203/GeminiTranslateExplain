@@ -84,7 +84,29 @@ namespace GeminiTranslateExplain.Models
             var loadedConfig = config ?? new AppConfig();
 
             if (loadedConfig.AIModels.Length > 0)
-                loadedConfig.SelectedAiModel = loadedConfig.AIModels[0];
+            {
+                var selected = loadedConfig.SelectedAiModel;
+                if (!string.IsNullOrWhiteSpace(selected.Name))
+                {
+                    var found = false;
+                    foreach (var model in loadedConfig.AIModels)
+                    {
+                        if (model.Name == selected.Name && model.Type == selected.Type)
+                        {
+                            loadedConfig.SelectedAiModel = model;
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found)
+                        loadedConfig.SelectedAiModel = loadedConfig.AIModels[0];
+                }
+                else
+                {
+                    loadedConfig.SelectedAiModel = loadedConfig.AIModels[0];
+                }
+            }
 
             return loadedConfig;
         }
