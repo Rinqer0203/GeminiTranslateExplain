@@ -1,5 +1,7 @@
 ﻿using GeminiTranslateExplain.Models;
+using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace GeminiTranslateExplain
@@ -38,6 +40,35 @@ namespace GeminiTranslateExplain
         {
             if (e.LeftButton == MouseButtonState.Pressed)
                 DragMove();
+        }
+
+        private void QuestionTextBox_Loaded(object sender, RoutedEventArgs e)
+        {
+            UpdateQuestionTextBoxHeight(sender as System.Windows.Controls.TextBox);
+        }
+
+        private void QuestionTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            UpdateQuestionTextBoxHeight(sender as System.Windows.Controls.TextBox);
+        }
+
+        private static void UpdateQuestionTextBoxHeight(System.Windows.Controls.TextBox? textBox)
+        {
+            if (textBox == null)
+                return;
+
+            // 行数に応じて高さを調整して、表示エリアを最大限確保する
+            int lineCount = Math.Max(1, textBox.LineCount);
+            double lineHeight = textBox.FontSize * 1.4;
+            double verticalPadding = textBox.Padding.Top + textBox.Padding.Bottom;
+            double desiredHeight = lineHeight * lineCount + verticalPadding + 6;
+
+            if (textBox.MinHeight > 0)
+                desiredHeight = Math.Max(desiredHeight, textBox.MinHeight);
+            if (textBox.MaxHeight > 0)
+                desiredHeight = Math.Min(desiredHeight, textBox.MaxHeight);
+
+            textBox.Height = desiredHeight;
         }
     }
 }
