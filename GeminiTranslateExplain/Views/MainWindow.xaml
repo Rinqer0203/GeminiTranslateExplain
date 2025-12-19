@@ -148,20 +148,38 @@
                 </ListBox.ItemContainerStyle>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Margin="0,0,0,12">
-                            <TextBlock
-                                FontSize="12"
-                                Foreground="#9E9E9E"
-                                Text="{Binding DisplayName}" />
-                            <TextBox
-                                FontSize="15"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
-                                IsReadOnly="True"
-                                Text="{Binding Text}"
-                                TextWrapping="Wrap" />
-                        </StackPanel>
+                        <Grid Margin="0,0,0,12">
+                            <Border
+                                x:Name="MessageBubble"
+                                Padding="10"
+                                Background="#2E2E2E"
+                                CornerRadius="10">
+                                <StackPanel>
+                                    <TextBlock
+                                        FontSize="12"
+                                        Foreground="#9E9E9E"
+                                        Text="{Binding DisplayName}" />
+                                    <TextBox
+                                        FontSize="15"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
+                                        IsReadOnly="True"
+                                        Text="{Binding Text}"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding Role}" Value="user">
+                                <Setter TargetName="MessageBubble" Property="Background" Value="#2A3B4A" />
+                                <Setter TargetName="MessageBubble" Property="HorizontalAlignment" Value="Right" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Role}" Value="assistant">
+                                <Setter TargetName="MessageBubble" Property="Background" Value="#2E2E2E" />
+                                <Setter TargetName="MessageBubble" Property="HorizontalAlignment" Value="Left" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
