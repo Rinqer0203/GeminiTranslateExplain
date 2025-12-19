@@ -5,6 +5,7 @@ using MaterialDesignThemes.Wpf;
 using Microsoft.Win32;
 using System.Media;
 using System.Windows;
+using System.Windows.Media;
 
 namespace GeminiTranslateExplain
 {
@@ -16,6 +17,7 @@ namespace GeminiTranslateExplain
         private TrayManager? _trayManager;
         private ForegroundWatcher? _foregroundWatcher;
         private GlobalHotKeyManager? _globalHotKeyManager;
+        private BundledTheme? _bundledTheme;
 
 
         protected override void OnStartup(StartupEventArgs e)
@@ -35,17 +37,18 @@ namespace GeminiTranslateExplain
             base.OnStartup(e);
 
             // wpfのテーマを設定
-            var bundledTheme = new BundledTheme
+            _bundledTheme = new BundledTheme
             {
-                BaseTheme = IsDarkTheme() ? BaseTheme.Dark : BaseTheme.Light,
+                BaseTheme = ResolveBaseTheme(),
                 PrimaryColor = PrimaryColor.Indigo,
                 SecondaryColor = SecondaryColor.DeepPurple
             };
-            Resources.MergedDictionaries.Add(bundledTheme);
+            Resources.MergedDictionaries.Add(_bundledTheme);
             Resources.MergedDictionaries.Add(new ResourceDictionary
             {
                 Source = new Uri("pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml")
             });
+            ApplyTheme();
 
             //　MainWindow初期化
             var mainWindow = new MainWindow();
@@ -91,6 +94,8 @@ namespace GeminiTranslateExplain
             if (!AppConfig.Instance.MinimizeToTray)
                 MainWindow.Show();
 
+            AppConfig.Instance.ThemeModeChanged += _ => ApplyTheme();
+
 
             // ショートカット (ctrl + c + c) のアクションを設定
             _clipboardActionHandler = new ClipboardActionHandler(MainWindow, text => _ = ExecuteTranslationAsync(text));
@@ -125,6 +130,47 @@ namespace GeminiTranslateExplain
                 return value == 0; // 0 = dark, 1 = light
             }
             return false;
+        }
+
+        private BaseTheme ResolveBaseTheme()
+        {
+            return AppConfig.Instance.ThemeMode switch
+            {
+                ThemeMode.Light => BaseTheme.Light,
+                ThemeMode.Dark => BaseTheme.Dark,
+                _ => IsDarkTheme() ? BaseTheme.Dark : BaseTheme.Light
+            };
+        }
+
+        private void ApplyTheme()
+        {
+            if (_bundledTheme == null)
+                return;
+
+            _bundledTheme.BaseTheme = ResolveBaseTheme();
+
+            var isDark = _bundledTheme.BaseTheme == BaseTheme.Dark;
+            if (isDark)
+            {
+                SetBrushResource("ChatUserBubbleForeground", System.Windows.Media.Color.FromRgb(0xEA, 0xF2, 0xF8));
+                SetBrushResource("ChatAiBubbleBackground", System.Windows.Media.Color.FromRgb(0x2B, 0x2B, 0x2B));
+                SetBrushResource("ChatAiBubbleBorder", System.Windows.Media.Color.FromRgb(0x4A, 0x4A, 0x4A));
+                SetBrushResource("ChatAiBubbleForeground", System.Windows.Media.Color.FromRgb(0xE8, 0xE8, 0xE8));
+                SetBrushResource("ChatLabelForeground", System.Windows.Media.Color.FromRgb(0xBD, 0xBD, 0xBD));
+            }
+            else
+            {
+                SetBrushResource("ChatUserBubbleForeground", System.Windows.Media.Color.FromRgb(0x1B, 0x2B, 0x3A));
+                SetBrushResource("ChatAiBubbleBackground", System.Windows.Media.Color.FromRgb(0xE3, 0xE8, 0xEE));
+                SetBrushResource("ChatAiBubbleBorder", System.Windows.Media.Color.FromRgb(0xB3, 0xBF, 0xCC));
+                SetBrushResource("ChatAiBubbleForeground", System.Windows.Media.Color.FromRgb(0x22, 0x22, 0x22));
+                SetBrushResource("ChatLabelForeground", System.Windows.Media.Color.FromRgb(0x6B, 0x6B, 0x6B));
+            }
+        }
+
+        private void SetBrushResource(string key, System.Windows.Media.Color color)
+        {
+            Resources[key] = new SolidColorBrush(color);
         }
 
         private static void ShowWindow(Window? window)

@@ -61,6 +61,18 @@
                     ItemsSource="{Binding WindowTypeItems}"
                     SelectedItem="{Binding SelectedResultWindowType, Mode=TwoWay}" />
 
+                <TextBlock
+                    Margin="0,0,0,10"
+                    FontSize="12"
+                    Text="テーマ"
+                    TextAlignment="Left"
+                    TextWrapping="Wrap" />
+                <ComboBox
+                    Margin="0,0,0,20"
+                    HorizontalAlignment="Stretch"
+                    ItemsSource="{Binding ThemeModeItems}"
+                    SelectedItem="{Binding SelectedThemeMode, Mode=TwoWay}" />
+
                 <TextBox
                     Margin="0,0,0,20"
                     HorizontalAlignment="Stretch"

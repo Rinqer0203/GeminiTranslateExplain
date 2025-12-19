@@ -14,6 +14,13 @@ namespace GeminiTranslateExplain.Models
         Clipboard
     }
 
+    public enum ThemeMode
+    {
+        System,
+        Light,
+        Dark
+    }
+
     public readonly record struct WindowSize(double Width, double Height);
 
     public class AppConfig
@@ -62,6 +69,8 @@ namespace GeminiTranslateExplain.Models
         public ObservableCollection<PromptProfile> PromptProfiles { get; set; } = new();
 
         public string SelectedPromptId { get; set; } = string.Empty;
+
+        public ThemeMode ThemeMode { get; set; } = ThemeMode.System;
 
         public WindowSize MainWindowSize { get; set; } = new WindowSize(-1, -1);
 
@@ -153,6 +162,7 @@ namespace GeminiTranslateExplain.Models
         }
 
         public event Action<HotKeyDefinition>? GlobalHotKeyChanged;
+        public event Action<ThemeMode>? ThemeModeChanged;
 
         public void UpdateGlobalHotKey(HotKeyDefinition hotKey)
         {
@@ -161,6 +171,15 @@ namespace GeminiTranslateExplain.Models
 
             GlobalHotKey = hotKey;
             GlobalHotKeyChanged?.Invoke(hotKey);
+        }
+
+        public void UpdateThemeMode(ThemeMode themeMode)
+        {
+            if (ThemeMode == themeMode)
+                return;
+
+            ThemeMode = themeMode;
+            ThemeModeChanged?.Invoke(themeMode);
         }
 
         public PromptProfile GetSelectedPromptProfile()

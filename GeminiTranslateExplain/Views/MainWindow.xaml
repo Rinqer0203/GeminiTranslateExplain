@@ -152,19 +152,25 @@
                             <Border
                                 x:Name="MessageBubble"
                                 Padding="10"
-                                Background="#2E2E2E"
+                                Background="{DynamicResource ChatAiBubbleBackground}"
+                                BorderBrush="{DynamicResource ChatAiBubbleBorder}"
+                                BorderThickness="1"
                                 CornerRadius="10">
                                 <StackPanel>
                                     <TextBlock
+                                        x:Name="MessageLabel"
                                         FontSize="12"
-                                        Foreground="#9E9E9E"
+                                        Foreground="{DynamicResource ChatLabelForeground}"
                                         Text="{Binding DisplayName}" />
                                     <TextBox
+                                        x:Name="MessageBody"
                                         FontSize="15"
                                         Background="Transparent"
                                         BorderThickness="0"
+                                        Foreground="{DynamicResource ChatAiBubbleForeground}"
                                         materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
                                         IsReadOnly="True"
+                                        Style="{x:Null}"
                                         Text="{Binding Text}"
                                         TextWrapping="Wrap" />
                                 </StackPanel>
@@ -172,12 +178,19 @@
                         </Grid>
                         <DataTemplate.Triggers>
                             <DataTrigger Binding="{Binding Role}" Value="user">
-                                <Setter TargetName="MessageBubble" Property="Background" Value="#2A3B4A" />
+                                <Setter TargetName="MessageBubble" Property="Background" Value="{DynamicResource ChatAiBubbleBackground}" />
+                                <Setter TargetName="MessageBubble" Property="BorderBrush" Value="{DynamicResource ChatAiBubbleBorder}" />
                                 <Setter TargetName="MessageBubble" Property="HorizontalAlignment" Value="Right" />
+                                <Setter TargetName="MessageLabel" Property="Foreground" Value="{DynamicResource ChatUserBubbleForeground}" />
+                                <Setter TargetName="MessageBody" Property="Foreground" Value="{DynamicResource ChatUserBubbleForeground}" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Role}" Value="assistant">
-                                <Setter TargetName="MessageBubble" Property="Background" Value="#2E2E2E" />
+                                <Setter TargetName="MessageBubble" Property="Background" Value="Transparent" />
+                                <Setter TargetName="MessageBubble" Property="BorderBrush" Value="Transparent" />
+                                <Setter TargetName="MessageBubble" Property="BorderThickness" Value="0" />
                                 <Setter TargetName="MessageBubble" Property="HorizontalAlignment" Value="Left" />
+                                <Setter TargetName="MessageLabel" Property="Foreground" Value="{DynamicResource ChatLabelForeground}" />
+                                <Setter TargetName="MessageBody" Property="Foreground" Value="{DynamicResource ChatAiBubbleForeground}" />
                             </DataTrigger>
                         </DataTemplate.Triggers>
                     </DataTemplate>

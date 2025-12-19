@@ -10,6 +10,7 @@ namespace GeminiTranslateExplain
     public partial class SettingWindowViewModel : ObservableObject
     {
         public List<WindowType> WindowTypeItems { get; }
+        public List<ThemeMode> ThemeModeItems { get; }
         [ObservableProperty]
         private string _geminiApiKey = AppConfig.Instance.GeminiApiKey;
 
@@ -18,6 +19,9 @@ namespace GeminiTranslateExplain
 
         [ObservableProperty]
         private WindowType _selectedResultWindowType;
+
+        [ObservableProperty]
+        private ThemeMode _selectedThemeMode;
 
         [ObservableProperty]
         private bool _startupWithWindows = AppConfig.Instance.StartupWithWindows;
@@ -37,7 +41,9 @@ namespace GeminiTranslateExplain
         public SettingWindowViewModel()
         {
             WindowTypeItems = Enum.GetValues(typeof(WindowType)).Cast<WindowType>().ToList();
+            ThemeModeItems = Enum.GetValues(typeof(ThemeMode)).Cast<ThemeMode>().ToList();
             SelectedResultWindowType = AppConfig.Instance.SelectedResultWindowType;
+            SelectedThemeMode = AppConfig.Instance.ThemeMode;
             GlobalHotKeyDisplay = FormatHotKey(GlobalHotKey);
         }
 
@@ -59,6 +65,11 @@ namespace GeminiTranslateExplain
         partial void OnSelectedResultWindowTypeChanged(WindowType value)
         {
             AppConfig.Instance.SelectedResultWindowType = value;
+        }
+
+        partial void OnSelectedThemeModeChanged(ThemeMode value)
+        {
+            AppConfig.Instance.UpdateThemeMode(value);
         }
 
         partial void OnStartupWithWindowsChanged(bool value)
