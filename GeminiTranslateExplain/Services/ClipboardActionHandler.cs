@@ -224,6 +224,9 @@ namespace GeminiTranslateExplain.Services
         /// </summary>
         private void OnClipboardUpdate()
         {
+            if (AppConfig.Instance.EnableDoubleCopyAction == false)
+                return;
+
             var now = DateTime.Now;
             var intervalMs = (now - _lastUpdateTime).TotalMilliseconds;
 

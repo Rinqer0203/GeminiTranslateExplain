@@ -137,6 +137,15 @@
                     Content="最小化して起動"
                     IsChecked="{Binding MinimizeToTray}"
                     Style="{StaticResource MaterialDesignCheckBox}" />
+
+                <CheckBox
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Margin="0,0,0,20"
+                    HorizontalAlignment="Left"
+                    Content="ダブルコピーで翻訳を有効にする"
+                    IsChecked="{Binding EnableDoubleCopyAction}"
+                    Style="{StaticResource MaterialDesignCheckBox}" />
             </StackPanel>
         </ScrollViewer>
     </Grid>

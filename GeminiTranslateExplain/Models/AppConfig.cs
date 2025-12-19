@@ -77,6 +77,8 @@ namespace GeminiTranslateExplain.Models
 
         public HotKeyDefinition GlobalHotKey { get; set; } = HotKeyDefinition.Default;
 
+        public bool EnableDoubleCopyAction { get; set; } = true;
+
         // ここまでJsonSerializerでシリアライズされるプロパティ
 
         private static AppConfig LoadConfig()

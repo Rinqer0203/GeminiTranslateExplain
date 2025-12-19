@@ -30,6 +30,9 @@ namespace GeminiTranslateExplain
         private bool _minimizeToTray = AppConfig.Instance.MinimizeToTray;
 
         [ObservableProperty]
+        private bool _enableDoubleCopyAction = AppConfig.Instance.EnableDoubleCopyAction;
+
+        [ObservableProperty]
         private HotKeyDefinition _globalHotKey = AppConfig.Instance.GlobalHotKey;
 
         [ObservableProperty]
@@ -115,6 +118,11 @@ namespace GeminiTranslateExplain
         partial void OnMinimizeToTrayChanged(bool value)
         {
             AppConfig.Instance.MinimizeToTray = value;
+        }
+
+        partial void OnEnableDoubleCopyActionChanged(bool value)
+        {
+            AppConfig.Instance.EnableDoubleCopyAction = value;
         }
 
         partial void OnGlobalHotKeyChanged(HotKeyDefinition value)
