@@ -1,0 +1,83 @@
+<Window
+    x:Class="GeminiTranslateExplain.Views.PromptEditorWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:GeminiTranslateExplain"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewModels="clr-namespace:GeminiTranslateExplain.ViewModels"
+    Title="プロンプト編集"
+    Width="650"
+    Height="500"
+    MinWidth="650"
+    MinHeight="450"
+    Style="{StaticResource MaterialDesignWindow}"
+    mc:Ignorable="d">
+
+    <Window.DataContext>
+        <viewModels:PromptEditorViewModel />
+    </Window.DataContext>
+
+    <Grid Margin="20">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel
+                Margin="30,0,30,0"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
+                <TextBlock
+                    Margin="-30,0,0,20"
+                    FontSize="20"
+                    Text="プロンプト編集" />
+
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="90" />
+                        <ColumnDefinition Width="90" />
+                    </Grid.ColumnDefinitions>
+                    <ComboBox
+                        Grid.Column="0"
+                        Margin="0,0,10,0"
+                        HorizontalAlignment="Stretch"
+                        ItemsSource="{Binding PromptProfiles}"
+                        SelectedItem="{Binding SelectedPromptProfile, Mode=TwoWay}"
+                        DisplayMemberPath="Name" />
+                    <Button
+                        Grid.Column="1"
+                        Margin="0,0,5,0"
+                        Command="{Binding AddPromptProfileCommand}"
+                        Content="追加" />
+                    <Button
+                        Grid.Column="2"
+                        Command="{Binding RemovePromptProfileCommand}"
+                        Content="削除" />
+                </Grid>
+
+                <TextBox
+                    Margin="0,0,0,20"
+                    HorizontalAlignment="Stretch"
+                    materialDesign:HintAssist.Hint="プロンプト名"
+                    materialDesign:TextFieldAssist.DecorationVisibility="Visible"
+                    FontSize="15"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                    Text="{Binding PromptName, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBox
+                    Height="260"
+                    Margin="0,0,0,20"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    VerticalContentAlignment="Top"
+                    local:FontZoomBehavior.IsZoomEnabled="True"
+                    materialDesign:HintAssist.Hint="プロンプト内容"
+                    AcceptsReturn="True"
+                    FontSize="15"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                    Text="{Binding PromptInstruction, UpdateSourceTrigger=PropertyChanged}"
+                    TextAlignment="Left"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>

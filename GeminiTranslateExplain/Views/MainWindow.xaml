@@ -46,19 +46,17 @@
 
         </Button>
 
-        <Button
-            Grid.Row="0"
-            Grid.Column="0"
-            Width="100"
-            Command="{Binding TranslateTextCommand}"
-            Content="Translate" />
-
         <StackPanel
             Grid.Row="0"
-            Grid.Column="1"
-            Margin="0,0,20,0"
-            HorizontalAlignment="Right"
+            Grid.Column="0"
+            Margin="45,0,0,0"
+            HorizontalAlignment="right"
             Orientation="Horizontal">
+            <TextBlock
+                Margin="0,0,8,0"
+                VerticalAlignment="Center"
+                FontSize="13"
+                Text="プロンプト" />
             <ComboBox
                 Width="160"
                 Height="30"
@@ -77,14 +75,38 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-            <ComboBox
-                Width="190"
+            <Button
+                Width="30"
                 Height="30"
-                HorizontalContentAlignment="Center"
-                FontSize="14"
-                ItemsSource="{Binding AiModels}"
-                SelectedItem="{Binding SelectedAiModel, Mode=TwoWay}" />
+                Margin="0,0,10,0"
+                Command="{Binding OpenPromptEditorWindowCommand}"
+                Style="{StaticResource MaterialDesignIconForegroundButton}">
+                <materialDesign:PackIcon
+                    Width="16"
+                    Height="16"
+                    Kind="Pencil" />
+            </Button>
         </StackPanel>
+
+        <ComboBox
+            Grid.Row="0"
+            Grid.Column="1"
+            Width="190"
+            Height="30"
+            Margin="0,0,20,0"
+            HorizontalAlignment="Right"
+            HorizontalContentAlignment="Center"
+            FontSize="14"
+            ItemsSource="{Binding AiModels}"
+            SelectedItem="{Binding SelectedAiModel, Mode=TwoWay}" />
+        <TextBlock
+            Grid.Row="0"
+            Grid.Column="1"
+            Margin="0,0,220,0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Center"
+            FontSize="13"
+            Text="モデル" />
 
         <Border
             Grid.Row="1"
@@ -93,21 +115,34 @@
             BorderBrush="Gray"
             BorderThickness="1,2,2,2"
             CornerRadius="4">
-            <TextBox
-                Grid.Row="1"
-                Grid.Column="0"
-                Padding="10"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"
-                VerticalContentAlignment="Top"
-                local:FontZoomBehavior.IsZoomEnabled="True"
-                local:SelectAllBehavior.IsSelectAllOnFocusEnabled="True"
-                materialDesign:HintAssist.Hint="翻訳するテキスト    ctrl+c+cで即座に翻訳"
-                AcceptsReturn="True"
-                FontSize="16"
-                Text="{Binding SourceText}"
-                TextAlignment="Left"
-                TextWrapping="Wrap" />
+            <Grid>
+                <TextBox
+                    Padding="10"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    VerticalContentAlignment="Top"
+                    local:FontZoomBehavior.IsZoomEnabled="True"
+                    local:SelectAllBehavior.IsSelectAllOnFocusEnabled="True"
+                    materialDesign:HintAssist.Hint="翻訳するテキスト    ctrl+c+cで即座に翻訳"
+                    AcceptsReturn="True"
+                    FontSize="16"
+                    Text="{Binding SourceText}"
+                    TextAlignment="Left"
+                    TextWrapping="Wrap" />
+                <Button
+                    Width="36"
+                    Height="36"
+                    Margin="0,0,6,6"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Command="{Binding TranslateTextCommand}"
+                    Style="{StaticResource MaterialDesignIconForegroundButton}">
+                    <materialDesign:PackIcon
+                        Width="20"
+                        Height="20"
+                        Kind="SendVariant" />
+                </Button>
+            </Grid>
         </Border>
 
         <Border

@@ -75,6 +75,14 @@ namespace GeminiTranslateExplain
             settingWindow.ShowDialog();  // モーダル表示
         }
 
+        [RelayCommand]
+        private static void OpenPromptEditorWindow()
+        {
+            var promptEditorWindow = new Views.PromptEditorWindow();
+            promptEditorWindow.Owner = System.Windows.Application.Current.MainWindow;
+            promptEditorWindow.ShowDialog();
+        }
+
         partial void OnSelectedAiModelChanged(AiModel value)
         {
             AppConfig.Instance.SelectedAiModel = value;

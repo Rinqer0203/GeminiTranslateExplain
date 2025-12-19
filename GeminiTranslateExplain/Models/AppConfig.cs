@@ -34,10 +34,12 @@ namespace GeminiTranslateExplain.Models
         public AiModel[] AIModels { get; set; } = [
             new AiModel("gemini-2.0-flash-lite", AiType.gemini),
             new AiModel("gemini-2.0-flash", AiType.gemini),
-            new AiModel("gemini-2.5-flash-preview-05-20", AiType.gemini),
-            new AiModel("gpt-4.1-nano", AiType.openai),
             new AiModel("gpt-4o-mini", AiType.openai),
-            new AiModel("gpt-4.1", AiType.openai),
+            new AiModel("gpt-4.1-nano", AiType.openai),
+            new AiModel("gpt-4.1-mini", AiType.openai),
+            new AiModel("gpt-5-mini", AiType.openai),
+            new AiModel("gpt-5-nano", AiType.openai),
+            new AiModel("gpt-5.2", AiType.openai),
         ];
 
         public AiModel SelectedAiModel { get; set; }
