@@ -113,14 +113,13 @@ namespace GeminiTranslateExplain
                 ChatMessages.Clear();
             }
 
-            const string displayMessage = "";
             var imageSource = CreateImageSource(imageBytes);
-            ChatMessages.Add(new ChatMessage("user", "あなた", displayMessage, imageSource));
+            ChatMessages.Add(new ChatMessage("user", "あなた", string.Empty, imageSource));
 
             _streamingMessage = new ChatMessage("assistant", "AI", string.Empty);
             ChatMessages.Add(_streamingMessage);
 
-            var result = await instance.RequestImageQuestion(imageBytes, displayMessage);
+            var result = await instance.RequestImageQuestion(imageBytes);
             if (_streamingMessage != null)
             {
                 _streamingMessage.Text = result;

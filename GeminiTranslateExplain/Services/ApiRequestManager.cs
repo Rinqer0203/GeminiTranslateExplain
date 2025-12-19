@@ -100,7 +100,7 @@ namespace GeminiTranslateExplain.Services
             return result;
         }
 
-        public async Task<string> RequestImageQuestion(byte[] imageBytes, string displayMessage)
+        public async Task<string> RequestImageQuestion(byte[] imageBytes)
         {
             if (_isRequesting)
             {
@@ -136,10 +136,7 @@ namespace GeminiTranslateExplain.Services
             await _openAiApiClient.StreamGenerateContentAsync(config.OpenAiApiKey, request, OnGetContentAction);
 
             var result = _sb.ToString();
-            if (!string.IsNullOrWhiteSpace(displayMessage))
-            {
-                _messages.Add(("user", displayMessage));
-            }
+            _messages.Add(("user", "[画像]"));
             _messages.Add(("model", result));
 
             _isRequesting = false;

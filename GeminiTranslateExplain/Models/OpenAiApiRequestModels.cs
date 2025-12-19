@@ -26,24 +26,6 @@ namespace GeminiTranslateExplain.Models
             return new Request(modelName, messageArray);
         }
 
-        public static Request CreateImageRequest(string modelName, string instruction, string imageBase64, string? userText = null)
-        {
-            var parts = new List<ContentPart>();
-            if (!string.IsNullOrWhiteSpace(userText))
-            {
-                parts.Add(new ContentPart("text", userText));
-            }
-            parts.Add(new ContentPart("image_url", image_url: new ImageUrl($"data:image/png;base64,{imageBase64}")));
-
-            var messages = new[]
-            {
-                new Message("system", instruction),
-                new Message("user", parts.ToArray())
-            };
-
-            return new Request(modelName, messages);
-        }
-
         /// <summary>
         /// OpenAI APIのロールに変換する
         /// </summary>
