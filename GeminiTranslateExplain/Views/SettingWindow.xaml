@@ -61,6 +61,17 @@
                     ItemsSource="{Binding WindowTypeItems}"
                     SelectedItem="{Binding SelectedResultWindowType, Mode=TwoWay}" />
 
+                <TextBox
+                    Margin="0,0,0,20"
+                    HorizontalAlignment="Stretch"
+                    materialDesign:HintAssist.Hint="グローバルショートカットキー"
+                    materialDesign:TextFieldAssist.DecorationVisibility="Visible"
+                    FontSize="15"
+                    IsReadOnly="True"
+                    PreviewKeyDown="GlobalHotKeyTextBox_PreviewKeyDown"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                    Text="{Binding GlobalHotKeyDisplay}" />
+
                 <!--  システム命令  -->
                 <TextBox
                     Height="100"

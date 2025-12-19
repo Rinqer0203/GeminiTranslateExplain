@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Text.Json;
+using System.Windows.Input;
 
 
 namespace GeminiTranslateExplain.Models
@@ -60,6 +61,8 @@ namespace GeminiTranslateExplain.Models
 
         public bool DebugClipboardAction { get; set; } = false;
 
+        public HotKeyDefinition GlobalHotKey { get; set; } = HotKeyDefinition.Default;
+
         // ここまでJsonSerializerでシリアライズされるプロパティ
 
         private static AppConfig LoadConfig()
@@ -108,6 +111,11 @@ namespace GeminiTranslateExplain.Models
                 }
             }
 
+            if (loadedConfig.GlobalHotKey.Key == Key.None || loadedConfig.GlobalHotKey.Modifiers == ModifierKeys.None)
+            {
+                loadedConfig.GlobalHotKey = HotKeyDefinition.Default;
+            }
+
             return loadedConfig;
         }
 
@@ -122,6 +130,17 @@ namespace GeminiTranslateExplain.Models
             {
                 System.Diagnostics.Debug.WriteLine($"Error saving config file '{ConfigFileName}': {ex.Message}");
             }
+        }
+
+        public event Action<HotKeyDefinition>? GlobalHotKeyChanged;
+
+        public void UpdateGlobalHotKey(HotKeyDefinition hotKey)
+        {
+            if (GlobalHotKey.Equals(hotKey))
+                return;
+
+            GlobalHotKey = hotKey;
+            GlobalHotKeyChanged?.Invoke(hotKey);
         }
     }
 }

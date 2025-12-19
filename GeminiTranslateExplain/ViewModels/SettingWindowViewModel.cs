@@ -3,6 +3,7 @@ using GeminiTranslateExplain.Models;
 using IWshRuntimeLibrary;
 using System.Diagnostics;
 using System.IO;
+using System.Windows.Input;
 
 namespace GeminiTranslateExplain
 {
@@ -31,10 +32,17 @@ namespace GeminiTranslateExplain
         [ObservableProperty]
         private bool _minimizeToTray = AppConfig.Instance.MinimizeToTray;
 
+        [ObservableProperty]
+        private HotKeyDefinition _globalHotKey = AppConfig.Instance.GlobalHotKey;
+
+        [ObservableProperty]
+        private string _globalHotKeyDisplay = string.Empty;
+
         public SettingWindowViewModel()
         {
             WindowTypeItems = Enum.GetValues(typeof(WindowType)).Cast<WindowType>().ToList();
             SelectedResultWindowType = AppConfig.Instance.SelectedResultWindowType;
+            GlobalHotKeyDisplay = FormatHotKey(GlobalHotKey);
         }
 
         public void OnClosed()
@@ -103,6 +111,28 @@ namespace GeminiTranslateExplain
         partial void OnMinimizeToTrayChanged(bool value)
         {
             AppConfig.Instance.MinimizeToTray = value;
+        }
+
+        partial void OnGlobalHotKeyChanged(HotKeyDefinition value)
+        {
+            AppConfig.Instance.UpdateGlobalHotKey(value);
+            GlobalHotKeyDisplay = FormatHotKey(value);
+        }
+
+        public void SetGlobalHotKey(HotKeyDefinition hotKey)
+        {
+            GlobalHotKey = hotKey;
+        }
+
+        private static string FormatHotKey(HotKeyDefinition hotKey)
+        {
+            var parts = new List<string>();
+            if ((hotKey.Modifiers & ModifierKeys.Control) == ModifierKeys.Control) parts.Add("Ctrl");
+            if ((hotKey.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift) parts.Add("Shift");
+            if ((hotKey.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt) parts.Add("Alt");
+            if ((hotKey.Modifiers & ModifierKeys.Windows) == ModifierKeys.Windows) parts.Add("Win");
+            parts.Add(hotKey.Key.ToString());
+            return string.Join(" + ", parts);
         }
     }
 }

@@ -3,6 +3,7 @@ using GeminiTranslateExplain.Services;
 using MaterialDesignColors;
 using MaterialDesignThemes.Wpf;
 using Microsoft.Win32;
+using System.Media;
 using System.Windows;
 
 namespace GeminiTranslateExplain
@@ -14,6 +15,7 @@ namespace GeminiTranslateExplain
         private ClipboardActionHandler? _clipboardActionHandler;
         private TrayManager? _trayManager;
         private ForegroundWatcher? _foregroundWatcher;
+        private GlobalHotKeyManager? _globalHotKeyManager;
 
 
         protected override void OnStartup(StartupEventArgs e)
@@ -91,43 +93,12 @@ namespace GeminiTranslateExplain
 
 
             // ショートカット (ctrl + c + c) のアクションを設定
-            _clipboardActionHandler = new ClipboardActionHandler(MainWindow, async (text) =>
-            {
-                // SourceTextを更新
-                if (MainWindow?.DataContext is MainWindowViewModel mainwindowVM)
-                {
-                    mainwindowVM.SourceText = text;
-                }
+            _clipboardActionHandler = new ClipboardActionHandler(MainWindow, text => _ = ExecuteTranslationAsync(text));
 
-                // 設定されたウィンドウタイプのウィンドウを表示して位置を設定
-                if (AppConfig.Instance.SelectedResultWindowType == WindowType.MainWindow)
-                {
-                    ShowWindow(MainWindow);
-                    WindowPositioner.SetWindowPosition(MainWindow);
-                }
-                else if (AppConfig.Instance.SelectedResultWindowType == WindowType.SimpleResultWindow)
-                {
-                    var window = WindowManager.GetView<SimpleResultWindow>();
-                    if (window != null)
-                    {
-                        window.Owner = this.MainWindow;
-                        window.ShowActivated = true;
-                        ShowWindow(window);
-                        WindowPositioner.SetWindowPosition(window);
-                    }
-                }
-
-                var apiManager = ApiRequestManager.Instance;
-                apiManager.ClearMessages();
-                apiManager.AddUserMessage(text);
-
-                var result = await apiManager.RequestTranslation();
-                if (AppConfig.Instance.SelectedResultWindowType == WindowType.Clipboard)
-                {
-                    _clipboardActionHandler?.SafeSetClipboardText(result);
-                    _trayManager?.ChangeCheckTemporaryIcon(1000);
-                }
-            });
+            _globalHotKeyManager = new GlobalHotKeyManager(MainWindow);
+            _globalHotKeyManager.HotKeyPressed += () => _ = OnGlobalHotKeyPressedAsync();
+            UpdateGlobalHotKey(AppConfig.Instance.GlobalHotKey);
+            AppConfig.Instance.GlobalHotKeyChanged += UpdateGlobalHotKey;
         }
 
         protected override void OnExit(ExitEventArgs e)
@@ -135,6 +106,7 @@ namespace GeminiTranslateExplain
             _clipboardActionHandler?.Dispose();
             _trayManager?.Dispose();
             _foregroundWatcher?.Dispose();
+            _globalHotKeyManager?.Dispose();
             AppConfig.Instance.SaveConfigJson();
             _mutex?.ReleaseMutex();
             _mutex?.Dispose();
@@ -163,6 +135,71 @@ namespace GeminiTranslateExplain
             window.Show();
             WindowUtilities.ForceActive(window);
             window.Topmost = false;
+        }
+
+        private async Task ExecuteTranslationAsync(string text)
+        {
+            // SourceTextを更新
+            if (MainWindow?.DataContext is MainWindowViewModel mainwindowVM)
+            {
+                mainwindowVM.SourceText = text;
+            }
+
+            // 設定されたウィンドウタイプのウィンドウを表示して位置を設定
+            if (AppConfig.Instance.SelectedResultWindowType == WindowType.MainWindow)
+            {
+                ShowWindow(MainWindow);
+                WindowPositioner.SetWindowPosition(MainWindow);
+            }
+            else if (AppConfig.Instance.SelectedResultWindowType == WindowType.SimpleResultWindow)
+            {
+                var window = WindowManager.GetView<SimpleResultWindow>();
+                if (window != null)
+                {
+                    window.Owner = this.MainWindow;
+                    window.ShowActivated = true;
+                    ShowWindow(window);
+                    WindowPositioner.SetWindowPosition(window);
+                }
+            }
+
+            var apiManager = ApiRequestManager.Instance;
+            apiManager.ClearMessages();
+            apiManager.AddUserMessage(text);
+
+            var result = await apiManager.RequestTranslation();
+            if (AppConfig.Instance.SelectedResultWindowType == WindowType.Clipboard)
+            {
+                _clipboardActionHandler?.SafeSetClipboardText(result);
+                _trayManager?.ChangeCheckTemporaryIcon(1000);
+            }
+        }
+
+        private async Task OnGlobalHotKeyPressedAsync()
+        {
+            if (_clipboardActionHandler == null)
+                return;
+
+            var text = await _clipboardActionHandler.TryGetSelectedTextAsync();
+            if (string.IsNullOrWhiteSpace(text) == false)
+            {
+                await ExecuteTranslationAsync(text);
+                return;
+            }
+
+            SystemSounds.Beep.Play();
+        }
+
+        private void UpdateGlobalHotKey(HotKeyDefinition hotKey)
+        {
+            if (_globalHotKeyManager == null)
+                return;
+
+            var registered = _globalHotKeyManager.Register(hotKey);
+            if (!registered)
+            {
+                System.Windows.MessageBox.Show("グローバルショートカットの登録に失敗しました。他のアプリと競合している可能性があります。", "ショートカット設定", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
     }
 }
