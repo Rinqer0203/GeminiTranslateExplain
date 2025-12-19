@@ -72,35 +72,51 @@
                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
                     Text="{Binding GlobalHotKeyDisplay}" />
 
-                <!--  システム命令  -->
-                <TextBox
-                    Height="100"
-                    Margin="0,0,0,20"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    VerticalContentAlignment="Top"
-                    local:FontZoomBehavior.IsZoomEnabled="True"
-                    materialDesign:HintAssist.Hint="システム命令"
-                    AcceptsReturn="True"
-                    FontSize="15"
-                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                    Text="{Binding SystemInstruction}"
-                    TextAlignment="Left"
-                    TextWrapping="Wrap" />
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="90" />
+                        <ColumnDefinition Width="90" />
+                    </Grid.ColumnDefinitions>
+                    <ComboBox
+                        Grid.Column="0"
+                        Margin="0,0,10,0"
+                        HorizontalAlignment="Stretch"
+                        ItemsSource="{Binding PromptProfiles}"
+                        SelectedItem="{Binding SelectedPromptProfile, Mode=TwoWay}"
+                        DisplayMemberPath="Name" />
+                    <Button
+                        Grid.Column="1"
+                        Margin="0,0,5,0"
+                        Command="{Binding AddPromptProfileCommand}"
+                        Content="追加" />
+                    <Button
+                        Grid.Column="2"
+                        Command="{Binding RemovePromptProfileCommand}"
+                        Content="削除" />
+                </Grid>
 
-                <!--  カスタム命令  -->
                 <TextBox
-                    Height="100"
+                    Margin="0,0,0,20"
+                    HorizontalAlignment="Stretch"
+                    materialDesign:HintAssist.Hint="プロンプト名"
+                    materialDesign:TextFieldAssist.DecorationVisibility="Visible"
+                    FontSize="15"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                    Text="{Binding PromptName, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBox
+                    Height="140"
                     Margin="0,0,0,20"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
                     VerticalContentAlignment="Top"
                     local:FontZoomBehavior.IsZoomEnabled="True"
-                    materialDesign:HintAssist.Hint="カスタム命令"
+                    materialDesign:HintAssist.Hint="プロンプト内容"
                     AcceptsReturn="True"
                     FontSize="15"
                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                    Text="{Binding CustomSystemInstruction}"
+                    Text="{Binding PromptInstruction, UpdateSourceTrigger=PropertyChanged}"
                     TextAlignment="Left"
                     TextWrapping="Wrap" />
 

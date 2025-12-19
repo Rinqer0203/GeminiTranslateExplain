@@ -3,21 +3,25 @@ using CommunityToolkit.Mvvm.Input;
 using GeminiTranslateExplain.Models;
 using GeminiTranslateExplain.Services;
 using GeminiTranslateExplain.ViewModels;
+using System.Collections.ObjectModel;
 
 namespace GeminiTranslateExplain
 {
     internal partial class MainWindowViewModel : ObservableObject, IProgressTextReceiver
     {
         public AiModel[] AiModels { get; } = AppConfig.Instance.AIModels;
+        public ObservableCollection<PromptProfile> PromptProfiles { get; } = AppConfig.Instance.PromptProfiles;
 
         string IProgressTextReceiver.Text
         {
             set => TranslatedText = value;
         }
 
-
         [ObservableProperty]
         private AiModel _selectedAiModel = AppConfig.Instance.SelectedAiModel;
+
+        [ObservableProperty]
+        private PromptProfile? _selectedPromptProfile = AppConfig.Instance.GetSelectedPromptProfile();
 
         [ObservableProperty]
         private string _sourceText = string.Empty;
@@ -27,9 +31,6 @@ namespace GeminiTranslateExplain
 
         [ObservableProperty]
         private string _questionText = string.Empty;
-
-        [ObservableProperty]
-        private bool _useCustomInstruction = AppConfig.Instance.UseCustomInstruction;
 
         public MainWindowViewModel()
         {
@@ -66,7 +67,6 @@ namespace GeminiTranslateExplain
             await instance.RequestTranslation();
         }
 
-
         [RelayCommand]
         private static void OpenSettingWindow()
         {
@@ -80,9 +80,12 @@ namespace GeminiTranslateExplain
             AppConfig.Instance.SelectedAiModel = value;
         }
 
-        partial void OnUseCustomInstructionChanged(bool value)
+        partial void OnSelectedPromptProfileChanged(PromptProfile? value)
         {
-            AppConfig.Instance.UseCustomInstruction = value;
+            if (value == null)
+                return;
+
+            AppConfig.Instance.SelectedPromptId = value.Id;
         }
     }
 }

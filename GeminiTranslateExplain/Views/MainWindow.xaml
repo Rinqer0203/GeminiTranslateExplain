@@ -53,26 +53,38 @@
             Command="{Binding TranslateTextCommand}"
             Content="Translate" />
 
-        <CheckBox
+        <StackPanel
             Grid.Row="0"
             Grid.Column="1"
-            Margin="0,0,250,0"
-            HorizontalAlignment="Right"
-            Content="カスタム命令"
-            IsChecked="{Binding UseCustomInstruction}"
-            Style="{StaticResource MaterialDesignCheckBox}" />
-
-        <ComboBox
-            Grid.Row="0"
-            Grid.Column="1"
-            Width="190"
-            Height="30"
             Margin="0,0,20,0"
             HorizontalAlignment="Right"
-            HorizontalContentAlignment="Center"
-            FontSize="14"
-            ItemsSource="{Binding AiModels}"
-            SelectedItem="{Binding SelectedAiModel, Mode=TwoWay}" />
+            Orientation="Horizontal">
+            <ComboBox
+                Width="160"
+                Height="30"
+                Margin="0,0,10,0"
+                HorizontalContentAlignment="Stretch"
+                VerticalContentAlignment="Center"
+                FontSize="14"
+                ItemsSource="{Binding PromptProfiles}"
+                SelectedItem="{Binding SelectedPromptProfile, Mode=TwoWay}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock
+                            HorizontalAlignment="Stretch"
+                            Text="{Binding Name}"
+                            TextAlignment="Center" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <ComboBox
+                Width="190"
+                Height="30"
+                HorizontalContentAlignment="Center"
+                FontSize="14"
+                ItemsSource="{Binding AiModels}"
+                SelectedItem="{Binding SelectedAiModel, Mode=TwoWay}" />
+        </StackPanel>
 
         <Border
             Grid.Row="1"

@@ -111,14 +111,7 @@ namespace GeminiTranslateExplain.Services
 
         private static string GetSystemInstruction()
         {
-            if (AppConfig.Instance.UseCustomInstruction)
-            {
-                return AppConfig.Instance.CustomSystemInstruction;
-            }
-            else
-            {
-                return AppConfig.Instance.SystemInstruction;
-            }
+            return AppConfig.Instance.GetSelectedPromptProfile().Instruction;
         }
     }
 }

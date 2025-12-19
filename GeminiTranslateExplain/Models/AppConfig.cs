@@ -1,7 +1,9 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Windows.Input;
-
 
 namespace GeminiTranslateExplain.Models
 {
@@ -54,6 +56,10 @@ namespace GeminiTranslateExplain.Models
             "不要に長くならないよう最小限に留めてください。";
 
         public string CustomSystemInstruction { get; set; } = "以下の単語について説明してください\n";
+
+        public ObservableCollection<PromptProfile> PromptProfiles { get; set; } = new();
+
+        public string SelectedPromptId { get; set; } = string.Empty;
 
         public WindowSize MainWindowSize { get; set; } = new WindowSize(-1, -1);
 
@@ -119,6 +125,8 @@ namespace GeminiTranslateExplain.Models
                 }
             }
 
+            InitializePromptProfiles(loadedConfig);
+
             if (loadedConfig.GlobalHotKey.Key == Key.None || loadedConfig.GlobalHotKey.Modifiers == ModifierKeys.None)
             {
                 loadedConfig.GlobalHotKey = HotKeyDefinition.Default;
@@ -149,6 +157,74 @@ namespace GeminiTranslateExplain.Models
 
             GlobalHotKey = hotKey;
             GlobalHotKeyChanged?.Invoke(hotKey);
+        }
+
+        public PromptProfile GetSelectedPromptProfile()
+        {
+            if (PromptProfiles.Count == 0)
+            {
+                var fallback = new PromptProfile
+                {
+                    Name = "デフォルト",
+                    Instruction = SystemInstruction
+                };
+                PromptProfiles.Add(fallback);
+                SelectedPromptId = fallback.Id;
+                return fallback;
+            }
+
+            var selected = PromptProfiles.FirstOrDefault(p => p.Id == SelectedPromptId);
+            if (selected != null)
+                return selected;
+
+            SelectedPromptId = PromptProfiles[0].Id;
+            return PromptProfiles[0];
+        }
+
+        private static void InitializePromptProfiles(AppConfig config)
+        {
+            if (config.PromptProfiles != null && config.PromptProfiles.Count > 0)
+            {
+                foreach (var profile in config.PromptProfiles)
+                {
+                    if (string.IsNullOrWhiteSpace(profile.Id))
+                        profile.Id = Guid.NewGuid().ToString("N");
+                    if (string.IsNullOrWhiteSpace(profile.Name))
+                        profile.Name = "プロンプト";
+                }
+            }
+            else
+            {
+                config.PromptProfiles = new ObservableCollection<PromptProfile>
+                {
+                    new PromptProfile
+                    {
+                        Name = "デフォルト",
+                        Instruction = config.SystemInstruction
+                    },
+                    new PromptProfile
+                    {
+                        Name = "カスタム",
+                        Instruction = config.CustomSystemInstruction
+                    }
+                };
+            }
+
+            if (string.IsNullOrWhiteSpace(config.SelectedPromptId))
+            {
+                if (config.UseCustomInstruction && config.PromptProfiles.Count > 1)
+                {
+                    config.SelectedPromptId = config.PromptProfiles[1].Id;
+                }
+                else
+                {
+                    config.SelectedPromptId = config.PromptProfiles[0].Id;
+                }
+            }
+            else if (config.PromptProfiles.Any(p => p.Id == config.SelectedPromptId) == false)
+            {
+                config.SelectedPromptId = config.PromptProfiles[0].Id;
+            }
         }
     }
 }
