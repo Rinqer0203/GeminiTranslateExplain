@@ -10,7 +10,7 @@ namespace GeminiTranslateExplain
     public partial class SettingWindowViewModel : ObservableObject
     {
         public List<WindowType> WindowTypeItems { get; }
-        public List<ThemeMode> ThemeModeItems { get; }
+        public List<ThemeModeItem> ThemeModeItems { get; }
         [ObservableProperty]
         private string _geminiApiKey = AppConfig.Instance.GeminiApiKey;
 
@@ -50,7 +50,12 @@ namespace GeminiTranslateExplain
         public SettingWindowViewModel()
         {
             WindowTypeItems = Enum.GetValues(typeof(WindowType)).Cast<WindowType>().ToList();
-            ThemeModeItems = Enum.GetValues(typeof(ThemeMode)).Cast<ThemeMode>().ToList();
+            ThemeModeItems =
+            [
+                new ThemeModeItem(ThemeMode.System, "システム"),
+                new ThemeModeItem(ThemeMode.Light, "ライト"),
+                new ThemeModeItem(ThemeMode.Dark, "ダーク")
+            ];
             SelectedResultWindowType = AppConfig.Instance.SelectedResultWindowType;
             SelectedThemeMode = AppConfig.Instance.ThemeMode;
             GlobalHotKeyDisplay = FormatHotKey(GlobalHotKey);
@@ -175,5 +180,7 @@ namespace GeminiTranslateExplain
             string shortcutPath = Path.Combine(startupFolderPath, $"{appName}.lnk");
             return System.IO.File.Exists(shortcutPath);
         }
+
+        public readonly record struct ThemeModeItem(ThemeMode Mode, string Label);
     }
 }

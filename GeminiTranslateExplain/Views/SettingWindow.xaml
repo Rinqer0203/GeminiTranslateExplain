@@ -71,7 +71,9 @@
                     Margin="0,0,0,20"
                     HorizontalAlignment="Stretch"
                     ItemsSource="{Binding ThemeModeItems}"
-                    SelectedItem="{Binding SelectedThemeMode, Mode=TwoWay}" />
+                    DisplayMemberPath="Label"
+                    SelectedValuePath="Mode"
+                    SelectedValue="{Binding SelectedThemeMode, Mode=TwoWay}" />
 
                 <TextBox
                     Margin="0,0,0,20"
