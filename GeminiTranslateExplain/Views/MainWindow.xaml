@@ -111,63 +111,60 @@
         <Border
             Grid.Row="1"
             Grid.Column="0"
-            Margin="5,0,0,0"
+            Grid.ColumnSpan="2"
+            Margin="5,0,5,0"
             BorderBrush="Gray"
             BorderThickness="1,2,2,2"
             CornerRadius="4">
-            <Grid>
-                <TextBox
-                    Padding="10"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    VerticalContentAlignment="Top"
-                    local:FontZoomBehavior.IsZoomEnabled="True"
-                    local:SelectAllBehavior.IsSelectAllOnFocusEnabled="True"
-                    materialDesign:HintAssist.Hint="翻訳するテキスト    ctrl+c+cで即座に翻訳"
-                    AcceptsReturn="True"
-                    FontSize="16"
-                    Text="{Binding SourceText}"
-                    TextAlignment="Left"
-                    TextWrapping="Wrap" />
-                <Button
-                    Width="36"
-                    Height="36"
-                    Margin="0,0,6,6"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Bottom"
-                    Command="{Binding TranslateTextCommand}"
-                    Style="{StaticResource MaterialDesignIconForegroundButton}">
-                    <materialDesign:PackIcon
-                        Width="20"
-                        Height="20"
-                        Kind="SendVariant" />
-                </Button>
-            </Grid>
-        </Border>
-
-        <Border
-            Grid.Row="1"
-            Grid.Column="1"
-            Margin="0,0,5,0"
-            BorderBrush="Gray"
-            BorderThickness="1,2,2,2"
-            CornerRadius="4">
-            <TextBox
-                Grid.Row="1"
-                Grid.Column="1"
+            <ListBox
                 Padding="10"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"
-                VerticalContentAlignment="Top"
-                local:FontZoomBehavior.IsZoomEnabled="True"
-                local:SelectAllBehavior.IsSelectAllOnFocusEnabled="True"
-                materialDesign:HintAssist.Hint="AIによる回答"
-                AcceptsReturn="True"
-                FontSize="16"
-                IsReadOnly="True"
-                Text="{Binding TranslatedText}"
-                TextAlignment="Left"
-                TextWrapping="Wrap" />
+                Background="Transparent"
+                BorderThickness="0"
+                ScrollViewer.CanContentScroll="False"
+                local:AutoScrollBehavior.IsEnabled="True"
+                ItemsSource="{Binding ChatMessages}">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="BorderBrush" Value="Transparent" />
+                        <Setter Property="BorderThickness" Value="0" />
+                        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="Margin" Value="0" />
+                        <Setter Property="materialDesign:RippleAssist.IsDisabled" Value="True" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <Border
+                                        Background="Transparent"
+                                        BorderBrush="Transparent"
+                                        BorderThickness="0">
+                                        <ContentPresenter />
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="0,0,0,12">
+                            <TextBlock
+                                FontSize="12"
+                                Foreground="#9E9E9E"
+                                Text="{Binding DisplayName}" />
+                            <TextBox
+                                FontSize="15"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
+                                IsReadOnly="True"
+                                Text="{Binding Text}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </Border>
 
         <Border
@@ -189,7 +186,7 @@
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
                     VerticalContentAlignment="Top"
-                    materialDesign:HintAssist.Hint="追加で質問"
+                    materialDesign:HintAssist.Hint="質問を入力"
                     AcceptsReturn="True"
                     FontSize="16"
                     ScrollViewer.VerticalScrollBarVisibility="Auto"

@@ -139,10 +139,10 @@ namespace GeminiTranslateExplain
 
         private async Task ExecuteTranslationAsync(string text)
         {
-            // SourceTextを更新
-            if (MainWindow?.DataContext is MainWindowViewModel mainwindowVM)
+            MainWindowViewModel? mainwindowVM = null;
+            if (MainWindow?.DataContext is MainWindowViewModel vm)
             {
-                mainwindowVM.SourceText = text;
+                mainwindowVM = vm;
             }
 
             // 設定されたウィンドウタイプのウィンドウを表示して位置を設定
@@ -163,11 +163,9 @@ namespace GeminiTranslateExplain
                 }
             }
 
-            var apiManager = ApiRequestManager.Instance;
-            apiManager.ClearMessages();
-            apiManager.AddUserMessage(text);
-
-            var result = await apiManager.RequestTranslation();
+            var result = mainwindowVM == null
+                ? string.Empty
+                : await mainwindowVM.SubmitMessageAsync(text, true);
             if (AppConfig.Instance.SelectedResultWindowType == WindowType.Clipboard)
             {
                 _clipboardActionHandler?.SafeSetClipboardText(result);

@@ -11,10 +11,19 @@ namespace GeminiTranslateExplain
     {
         public AiModel[] AiModels { get; } = AppConfig.Instance.AIModels;
         public ObservableCollection<PromptProfile> PromptProfiles { get; } = AppConfig.Instance.PromptProfiles;
+        public ObservableCollection<ChatMessage> ChatMessages { get; } = new();
+
+        private ChatMessage? _streamingMessage;
 
         string IProgressTextReceiver.Text
         {
-            set => TranslatedText = value;
+            set
+            {
+                if (_streamingMessage == null)
+                    return;
+
+                _streamingMessage.Text = value;
+            }
         }
 
         [ObservableProperty]
@@ -24,32 +33,11 @@ namespace GeminiTranslateExplain
         private PromptProfile? _selectedPromptProfile = AppConfig.Instance.GetSelectedPromptProfile();
 
         [ObservableProperty]
-        private string _sourceText = string.Empty;
-
-        [ObservableProperty]
-        private string _translatedText = string.Empty;
-
-        [ObservableProperty]
         private string _questionText = string.Empty;
 
         public MainWindowViewModel()
         {
             ApiRequestManager.Instance.RegisterProgressReceiver(this);
-        }
-
-        [RelayCommand]
-        private async Task TranslateText()
-        {
-            if (string.IsNullOrWhiteSpace(SourceText))
-            {
-                System.Media.SystemSounds.Beep.Play();
-                return;
-            }
-
-            var instance = ApiRequestManager.Instance;
-            instance.ClearMessages();
-            instance.AddUserMessage(SourceText);
-            await instance.RequestTranslation();
         }
 
         [RelayCommand]
@@ -61,10 +49,9 @@ namespace GeminiTranslateExplain
                 return;
             }
 
-            var instance = ApiRequestManager.Instance;
-            instance.AddUserMessage(QuestionText);
+            var text = QuestionText;
             QuestionText = string.Empty;
-            await instance.RequestTranslation();
+            await SubmitMessageAsync(text, ChatMessages.Count == 0);
         }
 
         [RelayCommand]
@@ -81,6 +68,34 @@ namespace GeminiTranslateExplain
             var promptEditorWindow = new Views.PromptEditorWindow();
             promptEditorWindow.Owner = System.Windows.Application.Current.MainWindow;
             promptEditorWindow.ShowDialog();
+        }
+
+        public async Task<string> SubmitMessageAsync(string text, bool resetConversation)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return string.Empty;
+
+            var instance = ApiRequestManager.Instance;
+            if (resetConversation)
+            {
+                instance.ClearMessages();
+                ChatMessages.Clear();
+            }
+
+            ChatMessages.Add(new ChatMessage("user", "あなた", text));
+            instance.AddUserMessage(text);
+
+            _streamingMessage = new ChatMessage("assistant", "AI", string.Empty);
+            ChatMessages.Add(_streamingMessage);
+
+            var result = await instance.RequestTranslation();
+            if (_streamingMessage != null)
+            {
+                _streamingMessage.Text = result;
+                _streamingMessage = null;
+            }
+
+            return result;
         }
 
         partial void OnSelectedAiModelChanged(AiModel value)
