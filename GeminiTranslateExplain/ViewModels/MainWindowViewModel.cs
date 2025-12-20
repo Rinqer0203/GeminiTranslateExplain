@@ -73,6 +73,15 @@ namespace GeminiTranslateExplain
             promptEditorWindow.ShowDialog();
         }
 
+        [RelayCommand]
+        private void StartNewChat()
+        {
+            ApiRequestManager.Instance.ClearMessages();
+            ChatMessages.Clear();
+            QuestionText = string.Empty;
+            _streamingMessage = null;
+        }
+
         public async Task<string> SubmitMessageAsync(string text, bool resetConversation)
         {
             if (string.IsNullOrWhiteSpace(text))
