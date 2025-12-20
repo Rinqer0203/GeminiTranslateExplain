@@ -1,4 +1,5 @@
 ﻿using GeminiTranslateExplain.Models;
+using System;
 using System.Runtime.InteropServices;
 using System.Windows;
 using Clipboard = System.Windows.Clipboard;
@@ -239,8 +240,8 @@ namespace GeminiTranslateExplain.Services
             if (TryGetClipboardText(out var clipboardText) == false)
                 return;
 
-            // クリップボードの内容が空、または前にクリップボードに設定したテキストと同じ場合は何もしない
-            if (string.IsNullOrWhiteSpace(clipboardText) || clipboardText == _lastSetText)
+            // クリップボードの内容が空、前にクリップボードに設定したテキストと同じ、またはURLの場合は何もしない
+            if (string.IsNullOrWhiteSpace(clipboardText) || clipboardText == _lastSetText || IsUrlText(clipboardText))
                 return;
 
             // 前回の更新からの時間が指定した間隔以内で、かつクリップボードの内容が前回と同じ場合はアクションを実行
@@ -253,6 +254,18 @@ namespace GeminiTranslateExplain.Services
 
             _lastUpdateTime = now;
             _lastText = clipboardText;
+        }
+
+        private static bool IsUrlText(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return false;
+
+            if (!Uri.TryCreate(text.Trim(), UriKind.Absolute, out var uri))
+                return false;
+
+            return uri.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
+                || uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase);
         }
 
         public void Dispose()
