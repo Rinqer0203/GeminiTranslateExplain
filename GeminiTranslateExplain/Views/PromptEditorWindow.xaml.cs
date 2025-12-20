@@ -1,4 +1,5 @@
-using GeminiTranslateExplain.ViewModels;
+﻿using GeminiTranslateExplain.ViewModels;
+using GeminiTranslateExplain.Services;
 using System.Windows;
 
 namespace GeminiTranslateExplain.Views
@@ -11,6 +12,7 @@ namespace GeminiTranslateExplain.Views
         public PromptEditorWindow()
         {
             InitializeComponent();
+            WindowUtilities.ApplyTitleBarTheme(this);
             this.Closed += (_, _) =>
             {
                 if (this.DataContext is PromptEditorViewModel vm)
@@ -21,3 +23,4 @@ namespace GeminiTranslateExplain.Views
         }
     }
 }
+

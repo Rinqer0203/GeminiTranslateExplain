@@ -1,4 +1,5 @@
 ﻿using GeminiTranslateExplain.Models;
+using GeminiTranslateExplain.Services;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
@@ -10,6 +11,7 @@ namespace GeminiTranslateExplain
         public SimpleResultWindow()
         {
             InitializeComponent();
+            WindowUtilities.ApplyTitleBarTheme(this);
 
             this.Loaded += (s, e) =>
             {
@@ -70,3 +72,4 @@ namespace GeminiTranslateExplain
         }
     }
 }
+

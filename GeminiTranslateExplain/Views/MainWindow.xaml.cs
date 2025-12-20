@@ -1,4 +1,5 @@
 ﻿using GeminiTranslateExplain.Models;
+using GeminiTranslateExplain.Services;
 using System;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,6 +15,7 @@ namespace GeminiTranslateExplain
         public MainWindow()
         {
             InitializeComponent();
+            WindowUtilities.ApplyTitleBarTheme(this);
 
             this.Loaded += (s, e) =>
             {
@@ -72,3 +74,4 @@ namespace GeminiTranslateExplain
         }
     }
 }
+

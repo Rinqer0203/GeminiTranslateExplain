@@ -180,6 +180,8 @@ namespace GeminiTranslateExplain
                 SetBrushResource("ChatAiBubbleForeground", System.Windows.Media.Color.FromRgb(0x22, 0x22, 0x22));
                 SetBrushResource("ChatLabelForeground", System.Windows.Media.Color.FromRgb(0x6B, 0x6B, 0x6B));
             }
+
+            WindowUtilities.ApplyTitleBarThemeToAllWindows();
         }
 
         private void SetBrushResource(string key, System.Windows.Media.Color color)

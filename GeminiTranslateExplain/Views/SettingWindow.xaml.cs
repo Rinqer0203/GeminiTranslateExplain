@@ -1,4 +1,5 @@
 ﻿using GeminiTranslateExplain.Models;
+using GeminiTranslateExplain.Services;
 using System.Windows;
 using System.Windows.Input;
 
@@ -12,6 +13,7 @@ namespace GeminiTranslateExplain
         public SettingWindow()
         {
             InitializeComponent();
+            WindowUtilities.ApplyTitleBarTheme(this);
             this.Closed += (_, _) =>
             {
                 if (this.DataContext is SettingWindowViewModel vm)
@@ -80,3 +82,4 @@ namespace GeminiTranslateExplain
         }
     }
 }
+
