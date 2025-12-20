@@ -17,6 +17,9 @@
     <Window.DataContext>
         <local:MainWindowViewModel />
     </Window.DataContext>
+    <Window.Resources>
+        <local:ZeroToVisibilityConverter x:Key="ZeroToVisibilityConverter" />
+    </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -107,90 +110,102 @@
             BorderBrush="Gray"
             BorderThickness="1,2,2,2"
             CornerRadius="4">
-            <ListBox
-                Padding="10"
-                Background="Transparent"
-                BorderThickness="0"
-                ScrollViewer.CanContentScroll="False"
-                local:AutoScrollBehavior.IsEnabled="True"
-                ItemsSource="{Binding ChatMessages}">
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="Background" Value="Transparent" />
-                        <Setter Property="BorderBrush" Value="Transparent" />
-                        <Setter Property="BorderThickness" Value="0" />
-                        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-                        <Setter Property="Padding" Value="0" />
-                        <Setter Property="Margin" Value="0" />
-                        <Setter Property="materialDesign:RippleAssist.IsDisabled" Value="True" />
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="ListBoxItem">
-                                    <Border
-                                        Background="Transparent"
-                                        BorderBrush="Transparent"
-                                        BorderThickness="0">
-                                        <ContentPresenter />
-                                    </Border>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </ListBox.ItemContainerStyle>
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Grid Margin="0,0,0,12">
-                            <Border
-                                x:Name="MessageBubble"
-                                Padding="10"
-                                Background="{DynamicResource ChatAiBubbleBackground}"
-                                BorderBrush="{DynamicResource ChatAiBubbleBorder}"
-                                BorderThickness="1"
-                                CornerRadius="10">
-                                <StackPanel>
-                                    <TextBox
-                                        x:Name="MessageBody"
-                                        FontSize="15"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Foreground="{DynamicResource ChatAiBubbleForeground}"
-                                        materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
-                                        IsReadOnly="True"
-                                        Style="{x:Null}"
-                                        Text="{Binding Text}"
-                                        TextWrapping="Wrap" />
-                                    <Image
-                                        x:Name="MessageImage"
-                                        MaxWidth="360"
-                                        MaxHeight="240"
-                                        Margin="0,8,0,0"
-                                        Source="{Binding ImageSource}"
-                                        Stretch="Uniform"
-                                        Visibility="Visible" />
-                                </StackPanel>
-                            </Border>
-                        </Grid>
-                        <DataTemplate.Triggers>
-                            <DataTrigger Binding="{Binding ImageSource}" Value="{x:Null}">
-                                <Setter TargetName="MessageImage" Property="Visibility" Value="Collapsed" />
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Role}" Value="user">
-                                <Setter TargetName="MessageBubble" Property="Background" Value="{DynamicResource ChatAiBubbleBackground}" />
-                                <Setter TargetName="MessageBubble" Property="BorderBrush" Value="{DynamicResource ChatAiBubbleBorder}" />
-                                <Setter TargetName="MessageBubble" Property="HorizontalAlignment" Value="Right" />
-                                <Setter TargetName="MessageBody" Property="Foreground" Value="{DynamicResource ChatUserBubbleForeground}" />
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Role}" Value="assistant">
-                                <Setter TargetName="MessageBubble" Property="Background" Value="Transparent" />
-                                <Setter TargetName="MessageBubble" Property="BorderBrush" Value="Transparent" />
-                                <Setter TargetName="MessageBubble" Property="BorderThickness" Value="0" />
-                                <Setter TargetName="MessageBubble" Property="HorizontalAlignment" Value="Left" />
-                                <Setter TargetName="MessageBody" Property="Foreground" Value="{DynamicResource ChatAiBubbleForeground}" />
-                            </DataTrigger>
-                        </DataTemplate.Triggers>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+            <Grid>
+                <ListBox
+                    x:Name="ChatMessagesListBox"
+                    Padding="10"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    ScrollViewer.CanContentScroll="False"
+                    local:AutoScrollBehavior.IsEnabled="True"
+                    ItemsSource="{Binding ChatMessages}">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="BorderBrush" Value="Transparent" />
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="Margin" Value="0" />
+                            <Setter Property="materialDesign:RippleAssist.IsDisabled" Value="True" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border
+                                            Background="Transparent"
+                                            BorderBrush="Transparent"
+                                            BorderThickness="0">
+                                            <ContentPresenter />
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,0,0,12">
+                                <Border
+                                    x:Name="MessageBubble"
+                                    Padding="10"
+                                    Background="{DynamicResource ChatAiBubbleBackground}"
+                                    BorderBrush="{DynamicResource ChatAiBubbleBorder}"
+                                    BorderThickness="1"
+                                    CornerRadius="10">
+                                    <StackPanel>
+                                        <TextBox
+                                            x:Name="MessageBody"
+                                            FontSize="15"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Foreground="{DynamicResource ChatAiBubbleForeground}"
+                                            materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
+                                            IsReadOnly="True"
+                                            Style="{x:Null}"
+                                            Text="{Binding Text}"
+                                            TextWrapping="Wrap" />
+                                        <Image
+                                            x:Name="MessageImage"
+                                            MaxWidth="360"
+                                            MaxHeight="240"
+                                            Margin="0,8,0,0"
+                                            Source="{Binding ImageSource}"
+                                            Stretch="Uniform"
+                                            Visibility="Visible" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding ImageSource}" Value="{x:Null}">
+                                    <Setter TargetName="MessageImage" Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Role}" Value="user">
+                                    <Setter TargetName="MessageBubble" Property="Background" Value="{DynamicResource ChatAiBubbleBackground}" />
+                                    <Setter TargetName="MessageBubble" Property="BorderBrush" Value="{DynamicResource ChatAiBubbleBorder}" />
+                                    <Setter TargetName="MessageBubble" Property="HorizontalAlignment" Value="Right" />
+                                    <Setter TargetName="MessageBody" Property="Foreground" Value="{DynamicResource ChatUserBubbleForeground}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Role}" Value="assistant">
+                                    <Setter TargetName="MessageBubble" Property="Background" Value="Transparent" />
+                                    <Setter TargetName="MessageBubble" Property="BorderBrush" Value="Transparent" />
+                                    <Setter TargetName="MessageBubble" Property="BorderThickness" Value="0" />
+                                    <Setter TargetName="MessageBubble" Property="HorizontalAlignment" Value="Left" />
+                                    <Setter TargetName="MessageBody" Property="Foreground" Value="{DynamicResource ChatAiBubbleForeground}" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <TextBlock
+                    FontSize="16"
+                    Foreground="#BFBFBF"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    IsHitTestVisible="False"
+                    Panel.ZIndex="1"
+                    Text="なにか質問してみましょう"
+                    Visibility="{Binding ChatMessages.Count, Converter={StaticResource ZeroToVisibilityConverter}, FallbackValue=Visible, TargetNullValue=Visible}" />
+            </Grid>
         </Border>
 
         <Border
