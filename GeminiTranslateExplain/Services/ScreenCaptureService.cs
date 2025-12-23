@@ -10,8 +10,9 @@ namespace GeminiTranslateExplain.Services
     {
         public static byte[] CapturePngBytes(Rect rect)
         {
-            var left = (int)Math.Round(rect.X + SystemParameters.VirtualScreenLeft);
-            var top = (int)Math.Round(rect.Y + SystemParameters.VirtualScreenTop);
+            // rectはスクリーン座標（物理解像度px）を想定
+            var left = (int)Math.Round(rect.X);
+            var top = (int)Math.Round(rect.Y);
             var width = Math.Max(1, (int)Math.Round(rect.Width));
             var height = Math.Max(1, (int)Math.Round(rect.Height));
 

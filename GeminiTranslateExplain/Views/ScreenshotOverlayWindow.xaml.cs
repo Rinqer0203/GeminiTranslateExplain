@@ -14,6 +14,7 @@ namespace GeminiTranslateExplain.Views
     {
         private readonly bool _stealthMode;
         private System.Windows.Point _startPoint;
+        private System.Windows.Point _startPointScreen;
         private bool _dragging;
         private TaskCompletionSource<Rect?>? _tcs;
 
@@ -62,6 +63,7 @@ namespace GeminiTranslateExplain.Views
         private void OnMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             _startPoint = e.GetPosition(this);
+            _startPointScreen = PointToScreen(_startPoint);
             _dragging = true;
             if (!_stealthMode)
             {
@@ -94,9 +96,11 @@ namespace GeminiTranslateExplain.Views
             _dragging = false;
             ReleaseMouseCapture();
 
-            var rect = CalculateRect(e.GetPosition(this));
+            var endPoint = e.GetPosition(this);
+            var rect = CalculateRect(endPoint);
+            var screenRect = CalculateScreenRect(endPoint);
 
-            CloseWithResult(rect.Width < 2 || rect.Height < 2 ? null : rect);
+            CloseWithResult(rect.Width < 2 || rect.Height < 2 ? null : screenRect);
         }
 
         private void OnKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -120,6 +124,16 @@ namespace GeminiTranslateExplain.Views
             var y = Math.Min(_startPoint.Y, currentPoint.Y);
             var width = Math.Abs(_startPoint.X - currentPoint.X);
             var height = Math.Abs(_startPoint.Y - currentPoint.Y);
+            return new Rect(x, y, width, height);
+        }
+
+        private Rect CalculateScreenRect(System.Windows.Point currentPoint)
+        {
+            var currentScreenPoint = PointToScreen(currentPoint);
+            var x = Math.Min(_startPointScreen.X, currentScreenPoint.X);
+            var y = Math.Min(_startPointScreen.Y, currentScreenPoint.Y);
+            var width = Math.Abs(_startPointScreen.X - currentScreenPoint.X);
+            var height = Math.Abs(_startPointScreen.Y - currentScreenPoint.Y);
             return new Rect(x, y, width, height);
         }
 
