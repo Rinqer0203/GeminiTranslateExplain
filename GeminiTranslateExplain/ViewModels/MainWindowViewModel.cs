@@ -13,7 +13,7 @@ namespace GeminiTranslateExplain
     internal partial class MainWindowViewModel : ObservableObject, IProgressTextReceiver
     {
         public AiModel[] AiModels { get; } = AppConfig.Instance.AIModels;
-        public ObservableCollection<PromptProfile> PromptProfiles { get; } = AppConfig.Instance.PromptProfiles;
+        public ObservableCollection<PromptProfile> PromptProfiles { get; } = PromptStore.Instance.PromptProfiles;
         public ObservableCollection<ChatMessage> ChatMessages { get; } = new();
 
         private ChatMessage? _streamingMessage;
@@ -33,7 +33,7 @@ namespace GeminiTranslateExplain
         private AiModel _selectedAiModel = AppConfig.Instance.SelectedAiModel;
 
         [ObservableProperty]
-        private PromptProfile? _selectedPromptProfile = AppConfig.Instance.GetSelectedPromptProfile();
+        private PromptProfile? _selectedPromptProfile = PromptStore.Instance.GetSelectedPromptProfile();
 
         [ObservableProperty]
         private string _questionText = string.Empty;
@@ -167,7 +167,7 @@ namespace GeminiTranslateExplain
             if (value == null)
                 return;
 
-            AppConfig.Instance.SelectedPromptId = value.Id;
+            PromptStore.Instance.SetSelectedPromptProfile(value);
         }
     }
 }

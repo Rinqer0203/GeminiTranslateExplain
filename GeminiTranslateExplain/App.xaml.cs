@@ -126,6 +126,7 @@ namespace GeminiTranslateExplain
             _trayManager?.Dispose();
             _foregroundWatcher?.Dispose();
             _globalHotKeyManager?.Dispose();
+            PromptStore.Instance.SaveAllProfiles();
             AppConfig.Instance.SaveConfigJson();
             _mutex?.ReleaseMutex();
             _mutex?.Dispose();

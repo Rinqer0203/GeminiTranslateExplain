@@ -7,7 +7,7 @@ namespace GeminiTranslateExplain.ViewModels
 {
     public partial class PromptEditorViewModel : ObservableObject
     {
-        public ObservableCollection<PromptProfile> PromptProfiles { get; } = AppConfig.Instance.PromptProfiles;
+        public ObservableCollection<PromptProfile> PromptProfiles { get; } = PromptStore.Instance.PromptProfiles;
 
         [ObservableProperty]
         private PromptProfile? _selectedPromptProfile;
@@ -20,7 +20,7 @@ namespace GeminiTranslateExplain.ViewModels
 
         public PromptEditorViewModel()
         {
-            SelectedPromptProfile = AppConfig.Instance.GetSelectedPromptProfile();
+            SelectedPromptProfile = PromptStore.Instance.GetSelectedPromptProfile();
             if (SelectedPromptProfile != null)
             {
                 PromptName = SelectedPromptProfile.Name;
@@ -30,7 +30,7 @@ namespace GeminiTranslateExplain.ViewModels
 
         public void OnClosed()
         {
-            AppConfig.Instance.SaveConfigJson();
+            PromptStore.Instance.SaveAllProfiles();
         }
 
         partial void OnSelectedPromptProfileChanged(PromptProfile? value)
@@ -38,7 +38,7 @@ namespace GeminiTranslateExplain.ViewModels
             if (value == null)
                 return;
 
-            AppConfig.Instance.SelectedPromptId = value.Id;
+            PromptStore.Instance.SetSelectedPromptProfile(value);
             PromptName = value.Name;
             PromptInstruction = value.Instruction;
         }
@@ -62,12 +62,7 @@ namespace GeminiTranslateExplain.ViewModels
         [RelayCommand]
         private void AddPromptProfile()
         {
-            var profile = new PromptProfile
-            {
-                Name = "新しいプロンプト",
-                Instruction = string.Empty
-            };
-            PromptProfiles.Add(profile);
+            var profile = PromptStore.Instance.AddPromptProfile("新しいプロンプト");
             SelectedPromptProfile = profile;
         }
 
@@ -78,7 +73,7 @@ namespace GeminiTranslateExplain.ViewModels
                 return;
 
             var index = PromptProfiles.IndexOf(SelectedPromptProfile);
-            PromptProfiles.Remove(SelectedPromptProfile);
+            PromptStore.Instance.RemovePromptProfile(SelectedPromptProfile);
 
             if (PromptProfiles.Count == 0)
                 return;

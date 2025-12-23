@@ -192,7 +192,7 @@ namespace GeminiTranslateExplain.Services
 
         private static string GetSystemInstruction()
         {
-            return AppConfig.Instance.GetSelectedPromptProfile().Instruction;
+            return PromptStore.Instance.GetSelectedPromptProfile().Instruction;
         }
     }
 }

@@ -12,5 +12,8 @@ namespace GeminiTranslateExplain.Models
 
         [ObservableProperty]
         private string _instruction = string.Empty;
+
+        [ObservableProperty]
+        private string _filePath = string.Empty;
     }
 }
