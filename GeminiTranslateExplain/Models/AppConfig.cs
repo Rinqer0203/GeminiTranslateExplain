@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Windows.Input;
 
@@ -34,6 +36,8 @@ namespace GeminiTranslateExplain.Models
 
         public WindowType SelectedResultWindowType { get; set; } = WindowType.SimpleResultWindow;
 
+        public bool UseCustomInstruction { get; set; } = false;
+
         public AiModel[] AIModels { get; set; } = [
             new AiModel("gemini-2.0-flash-lite", AiType.gemini),
             new AiModel("gemini-2.0-flash", AiType.gemini),
@@ -47,6 +51,26 @@ namespace GeminiTranslateExplain.Models
         ];
 
         public AiModel SelectedAiModel { get; set; }
+
+        public string SystemInstruction { get; set; } = "入力内容を`入力解釈ルール`に基づいて判別し、それに応じた日本語を`出力フォーマット`に従って出力してください。\r\n\r\n" +
+            "```入力解釈ルール\r\n" +
+            "if english:\r\n" +
+            "    if 文脈を持つ文章の場合:\r\n" +
+            "        日本語として自然で意味が正確に対応する文章に翻訳\r\n" +
+            "    elif 単語 or 略語 or 短い語句:\r\n" +
+            "        翻訳文は作らず、日本語での意味や用法を簡潔に説明\r\n" +
+            "else:\r\n" +
+            "    簡潔な説明\r\n" +
+            "    if 難しい漢字や単語が含まれている:\r\n" +
+            "        読み方や意味も簡潔に説明\r\n" +
+            "```\r\n\r\n" +
+            "# 出力フォーマット\r\n" +
+            "- プレーンテキストのみ\r\n" +
+            "- 原文の反復、判断理由、内部思考は出力しない";
+
+        public string CustomSystemInstruction { get; set; } = "以下の単語について説明してください\n";
+
+        public ObservableCollection<PromptProfile> PromptProfiles { get; set; } = new();
 
         public string SelectedPromptId { get; set; } = string.Empty;
 
@@ -120,6 +144,8 @@ namespace GeminiTranslateExplain.Models
                 }
             }
 
+            InitializePromptProfiles(loadedConfig);
+
             if (loadedConfig.GlobalHotKey.Key == Key.None || loadedConfig.GlobalHotKey.Modifiers == ModifierKeys.None)
             {
                 loadedConfig.GlobalHotKey = HotKeyDefinition.Default;
@@ -177,5 +203,72 @@ namespace GeminiTranslateExplain.Models
             ThemeModeChanged?.Invoke(themeMode);
         }
 
+        public PromptProfile GetSelectedPromptProfile()
+        {
+            if (PromptProfiles.Count == 0)
+            {
+                var fallback = new PromptProfile
+                {
+                    Name = "デフォルト",
+                    Instruction = SystemInstruction
+                };
+                PromptProfiles.Add(fallback);
+                SelectedPromptId = fallback.Id;
+                return fallback;
+            }
+
+            var selected = PromptProfiles.FirstOrDefault(p => p.Id == SelectedPromptId);
+            if (selected != null)
+                return selected;
+
+            SelectedPromptId = PromptProfiles[0].Id;
+            return PromptProfiles[0];
+        }
+
+        private static void InitializePromptProfiles(AppConfig config)
+        {
+            if (config.PromptProfiles != null && config.PromptProfiles.Count > 0)
+            {
+                foreach (var profile in config.PromptProfiles)
+                {
+                    if (string.IsNullOrWhiteSpace(profile.Id))
+                        profile.Id = Guid.NewGuid().ToString("N");
+                    if (string.IsNullOrWhiteSpace(profile.Name))
+                        profile.Name = "プロンプト";
+                }
+            }
+            else
+            {
+                config.PromptProfiles = new ObservableCollection<PromptProfile>
+                {
+                    new PromptProfile
+                    {
+                        Name = "デフォルト",
+                        Instruction = config.SystemInstruction
+                    },
+                    new PromptProfile
+                    {
+                        Name = "カスタム",
+                        Instruction = config.CustomSystemInstruction
+                    }
+                };
+            }
+
+            if (string.IsNullOrWhiteSpace(config.SelectedPromptId))
+            {
+                if (config.UseCustomInstruction && config.PromptProfiles.Count > 1)
+                {
+                    config.SelectedPromptId = config.PromptProfiles[1].Id;
+                }
+                else
+                {
+                    config.SelectedPromptId = config.PromptProfiles[0].Id;
+                }
+            }
+            else if (config.PromptProfiles.Any(p => p.Id == config.SelectedPromptId) == false)
+            {
+                config.SelectedPromptId = config.PromptProfiles[0].Id;
+            }
+        }
     }
 }
