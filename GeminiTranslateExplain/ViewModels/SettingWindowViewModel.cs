@@ -33,9 +33,6 @@ namespace GeminiTranslateExplain
         private bool _enableDoubleCopyAction = AppConfig.Instance.EnableDoubleCopyAction;
 
         [ObservableProperty]
-        private bool _screenshotStealthMode = AppConfig.Instance.ScreenshotStealthMode;
-
-        [ObservableProperty]
         private HotKeyDefinition _globalHotKey = AppConfig.Instance.GlobalHotKey;
 
         [ObservableProperty]
@@ -49,7 +46,10 @@ namespace GeminiTranslateExplain
 
         public SettingWindowViewModel()
         {
-            WindowTypeItems = Enum.GetValues(typeof(WindowType)).Cast<WindowType>().ToList();
+            WindowTypeItems = Enum.GetValues(typeof(WindowType))
+                .Cast<WindowType>()
+                .Where(type => type != WindowType.Clipboard)
+                .ToList();
             ThemeModeItems =
             [
                 new ThemeModeItem(ThemeMode.System, "システム"),
@@ -133,11 +133,6 @@ namespace GeminiTranslateExplain
         partial void OnEnableDoubleCopyActionChanged(bool value)
         {
             AppConfig.Instance.EnableDoubleCopyAction = value;
-        }
-
-        partial void OnScreenshotStealthModeChanged(bool value)
-        {
-            AppConfig.Instance.ScreenshotStealthMode = value;
         }
 
         partial void OnGlobalHotKeyChanged(HotKeyDefinition value)

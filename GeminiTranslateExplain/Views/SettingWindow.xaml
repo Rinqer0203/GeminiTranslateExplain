@@ -124,14 +124,6 @@
                     IsChecked="{Binding EnableDoubleCopyAction}"
                     Style="{StaticResource MaterialDesignCheckBox}" />
 
-                <CheckBox
-                    Grid.Row="0"
-                    Grid.Column="1"
-                    Margin="0,0,0,20"
-                    HorizontalAlignment="Left"
-                    Content="透明スクリーンショットモード"
-                    IsChecked="{Binding ScreenshotStealthMode}"
-                    Style="{StaticResource MaterialDesignCheckBox}" />
             </StackPanel>
         </ScrollViewer>
     </Grid>
