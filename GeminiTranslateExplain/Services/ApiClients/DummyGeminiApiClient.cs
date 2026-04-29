@@ -23,7 +23,15 @@ namespace GeminiTranslateExplain.Services.ApiClients
 
                 foreach (var content in body.Contents)
                 {
-                    sb.AppendLine($"{content.Role} : {string.Join(" ", content.Parts.Select(p => p.Text))}");
+                    var parts = content.Parts.Select(p =>
+                    {
+                        if (p.Text != null)
+                            return p.Text;
+                        if (p.InlineData != null)
+                            return $"[画像:{p.InlineData.MimeType}, base64 {p.InlineData.Data.Length} chars]";
+                        return string.Empty;
+                    });
+                    sb.AppendLine($"{content.Role} : {string.Join(" ", parts)}");
                 }
 
                 string fullText = sb.ToString();

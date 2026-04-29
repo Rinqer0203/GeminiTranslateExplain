@@ -135,25 +135,34 @@ namespace GeminiTranslateExplain.Services
                 _requestHadError = false;
 
                 var config = AppConfig.Instance;
-                if (config.SelectedAiModel.Type != AiType.openai)
+                ImageLogService.SaveSentImage(imageBytes, config.SelectedAiModel.Type.ToString());
+                var imageBase64 = Convert.ToBase64String(imageBytes);
+
+                if (config.SelectedAiModel.Type == AiType.openai)
+                {
+                    var baseRequest = OpenAiApiRequestModels.CreateRequest(config.SelectedAiModel.Name, GetSystemInstruction(), _messages.AsSpan());
+                    var messageList = new List<OpenAiApiRequestModels.Message>(baseRequest.messages.Length + 1);
+                    messageList.AddRange(baseRequest.messages);
+
+                    var parts = new[]
+                    {
+                        new OpenAiApiRequestModels.ContentPart("image_url", image_url: new OpenAiApiRequestModels.ImageUrl($"data:image/png;base64,{imageBase64}"))
+                    };
+                    messageList.Add(new OpenAiApiRequestModels.Message("user", parts));
+
+                    var request = new OpenAiApiRequestModels.Request(config.SelectedAiModel.Name, messageList.ToArray());
+                    await _openAiApiClient.StreamGenerateContentAsync(config.OpenAiApiKey, request, OnGetContentAction, OnErrorAction);
+                }
+                else if (config.SelectedAiModel.Type == AiType.gemini)
+                {
+                    var request = GeminiApiRequestModels.CreateImageRequest(GetSystemInstruction(), _messages.AsSpan(), imageBase64, "image/png");
+                    await _geminiApiClient.StreamGenerateContentAsync(config.GeminiApiKey, request, config.SelectedAiModel.Name, OnGetContentAction, OnErrorAction);
+                }
+                else
                 {
                     _requestHadError = true;
-                    return "画像入力はOpenAIモデルのみ対応しています";
+                    return "サポートされていないAIモデルです";
                 }
-
-                var baseRequest = OpenAiApiRequestModels.CreateRequest(config.SelectedAiModel.Name, GetSystemInstruction(), _messages.AsSpan());
-                var messageList = new List<OpenAiApiRequestModels.Message>(baseRequest.messages.Length + 1);
-                messageList.AddRange(baseRequest.messages);
-
-                var imageBase64 = Convert.ToBase64String(imageBytes);
-                var parts = new[]
-                {
-                    new OpenAiApiRequestModels.ContentPart("image_url", image_url: new OpenAiApiRequestModels.ImageUrl($"data:image/png;base64,{imageBase64}"))
-                };
-                messageList.Add(new OpenAiApiRequestModels.Message("user", parts));
-
-                var request = new OpenAiApiRequestModels.Request(config.SelectedAiModel.Name, messageList.ToArray());
-                await _openAiApiClient.StreamGenerateContentAsync(config.OpenAiApiKey, request, OnGetContentAction, OnErrorAction);
 
                 var result = _sb.ToString();
                 _messages.Add(("user", "[画像]"));

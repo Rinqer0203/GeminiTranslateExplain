@@ -34,7 +34,14 @@ namespace GeminiTranslateExplain
                 return;
             }
 
-            vm.SetGlobalHotKey(hotKey.Value);
+            if (hotKey.IsPlainCopyShortcut())
+            {
+                System.Windows.MessageBox.Show("Ctrl + C はコピー操作と競合するため、グローバルショートカットには設定できません。", "ショートカット設定", MessageBoxButton.OK, MessageBoxImage.Information);
+                e.Handled = true;
+                return;
+            }
+
+            vm.SetGlobalHotKey(hotKey);
             e.Handled = true;
         }
 
@@ -49,13 +56,13 @@ namespace GeminiTranslateExplain
                 return;
             }
 
-            vm.SetScreenshotHotKey(hotKey.Value);
+            vm.SetScreenshotHotKey(hotKey);
             e.Handled = true;
         }
 
-        private static bool TryBuildHotKey(System.Windows.Input.KeyEventArgs e, out HotKeyDefinition? hotKey)
+        private static bool TryBuildHotKey(System.Windows.Input.KeyEventArgs e, out HotKeyDefinition hotKey)
         {
-            hotKey = null;
+            hotKey = default;
             var key = e.Key == Key.System ? e.SystemKey : e.Key;
             if (IsModifierKey(key))
             {

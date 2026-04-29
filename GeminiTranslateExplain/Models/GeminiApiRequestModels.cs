@@ -1,11 +1,23 @@
-﻿namespace GeminiTranslateExplain.Models
+using System.Text.Json.Serialization;
+
+namespace GeminiTranslateExplain.Models
 {
     /// <summary>
     /// Gemini API 向けのリクエスト構造モデル定義
     /// </summary>
     public static class GeminiApiRequestModels
     {
-        public record Part(string Text);
+        public record InlineData(
+            [property: JsonPropertyName("mime_type")] string MimeType,
+            [property: JsonPropertyName("data")] string Data);
+
+        public record Part(
+            [property: JsonPropertyName("text")]
+            [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            string? Text = null,
+            [property: JsonPropertyName("inline_data")]
+            [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            InlineData? InlineData = null);
 
         public record SystemInstruction(Part[] Parts);
 
@@ -19,15 +31,27 @@
             for (int i = 0; i < messages.Length; i++)
             {
                 var (role, text) = messages[i];
-                contents[i] = new Content(ConvertRole(role), [new Part(text)]);
+                contents[i] = new Content(ConvertRole(role), [new Part(Text: text)]);
             }
 
             return new Request(
-                new SystemInstruction([new Part(instruction)]),
+                new SystemInstruction([new Part(Text: instruction)]),
                 contents
             );
         }
 
+        public static Request CreateImageRequest(string instruction, ReadOnlySpan<(string role, string text)> messages, string imageBase64, string mimeType)
+        {
+            var baseRequest = CreateRequest(instruction, messages);
+            var contents = new Content[baseRequest.Contents.Length + 1];
+            baseRequest.Contents.CopyTo(contents, 0);
+            contents[^1] = new Content("user",
+            [
+                new Part(InlineData: new InlineData(mimeType, imageBase64))
+            ]);
+
+            return new Request(baseRequest.System_instruction, contents);
+        }
 
         /// <summary>
         /// Gemini APIのロールに変換する

@@ -21,6 +21,7 @@ namespace GeminiTranslateExplain
         private GlobalHotKeyManager? _globalHotKeyManager;
         private BundledTheme? _bundledTheme;
         private int? _screenshotHotKeyId;
+        private bool _isGlobalHotKeyActionRunning;
         private bool _isScreenshotCapturing;
         private Views.ScreenshotOverlayWindow? _activeScreenshotOverlay;
         private DateTime _ignoreSimpleResultWindowHideUntil = DateTime.MinValue;
@@ -199,6 +200,21 @@ namespace GeminiTranslateExplain
             window.Topmost = false;
         }
 
+        private void ShowSimpleResultWindow()
+        {
+            var window = WindowManager.GetView<SimpleResultWindow>();
+            if (window == null)
+                return;
+
+            if (MainWindow != null && MainWindow.IsVisible)
+                MainWindow.Hide();
+
+            window.Owner = null;
+            window.ShowActivated = true;
+            ShowWindow(window);
+            WindowPositioner.SetWindowPosition(window);
+        }
+
         private async Task ExecuteTranslationAsync(string text)
         {
             MainWindowViewModel? mainwindowVM = null;
@@ -215,14 +231,7 @@ namespace GeminiTranslateExplain
             }
             else if (AppConfig.Instance.SelectedResultWindowType == WindowType.SimpleResultWindow)
             {
-                var window = WindowManager.GetView<SimpleResultWindow>();
-                if (window != null)
-                {
-                    window.Owner = this.MainWindow;
-                    window.ShowActivated = true;
-                    ShowWindow(window);
-                    WindowPositioner.SetWindowPosition(window);
-                }
+                ShowSimpleResultWindow();
             }
 
             var result = mainwindowVM == null
@@ -236,17 +245,28 @@ namespace GeminiTranslateExplain
 
         private async Task OnGlobalHotKeyPressedAsync()
         {
+            if (_isGlobalHotKeyActionRunning)
+                return;
+
             if (_clipboardActionHandler == null)
                 return;
 
-            var text = await _clipboardActionHandler.TryGetSelectedTextAsync();
-            if (string.IsNullOrWhiteSpace(text) == false)
+            _isGlobalHotKeyActionRunning = true;
+            try
             {
-                await ExecuteTranslationAsync(text);
-                return;
-            }
+                var text = await _clipboardActionHandler.TryGetSelectedTextAsync();
+                if (string.IsNullOrWhiteSpace(text) == false)
+                {
+                    await ExecuteTranslationAsync(text);
+                    return;
+                }
 
-            SystemSounds.Beep.Play();
+                SystemSounds.Beep.Play();
+            }
+            finally
+            {
+                _isGlobalHotKeyActionRunning = false;
+            }
         }
 
         private async Task OnScreenshotHotKeyPressedAsync()
@@ -259,12 +279,6 @@ namespace GeminiTranslateExplain
 
             if (MainWindow?.DataContext is not MainWindowViewModel mainwindowVM)
                 return;
-
-            if (AppConfig.Instance.SelectedAiModel.Type != AiType.openai)
-            {
-                System.Windows.MessageBox.Show("画像入力はOpenAIモデルのみ対応しています。", "スクリーンショット", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
 
             _isScreenshotCapturing = true;
             Views.ScreenshotOverlayWindow? overlay = null;
@@ -307,15 +321,8 @@ namespace GeminiTranslateExplain
             }
             else if (AppConfig.Instance.SelectedResultWindowType == WindowType.SimpleResultWindow)
             {
-                var window = WindowManager.GetView<SimpleResultWindow>();
-                if (window != null)
-                {
-                    _ignoreSimpleResultWindowHideUntil = DateTime.UtcNow.AddMilliseconds(750);
-                    window.Owner = this.MainWindow;
-                    window.ShowActivated = true;
-                    ShowWindow(window);
-                    WindowPositioner.SetWindowPosition(window);
-                }
+                _ignoreSimpleResultWindowHideUntil = DateTime.UtcNow.AddMilliseconds(750);
+                ShowSimpleResultWindow();
             }
 
             var result = await mainwindowVM.SubmitImageMessageAsync(imageBytes, true);
@@ -329,6 +336,12 @@ namespace GeminiTranslateExplain
         {
             if (_globalHotKeyManager == null)
                 return;
+
+            if (hotKey.IsPlainCopyShortcut())
+            {
+                AppConfig.Instance.UpdateGlobalHotKey(HotKeyDefinition.Default);
+                return;
+            }
 
             var registered = _globalHotKeyManager.Register(hotKey);
             if (!registered)

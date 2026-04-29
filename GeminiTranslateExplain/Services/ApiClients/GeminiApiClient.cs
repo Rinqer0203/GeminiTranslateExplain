@@ -1,7 +1,8 @@
 ﻿using GeminiTranslateExplain.Models;
 using System.Net.Http;
-using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace GeminiTranslateExplain.Services.ApiClients
 {
@@ -32,10 +33,14 @@ namespace GeminiTranslateExplain.Services.ApiClients
             Action<string> onError)
         {
             var path = $"{BaseUrl}models/{modelName}:streamGenerateContent?alt=sse&key={apiKey}";
+            var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+            {
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
 
             using var requestMessage = new HttpRequestMessage(HttpMethod.Post, path);
             requestMessage.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/event-stream"));
-            requestMessage.Content = JsonContent.Create(request);
+            requestMessage.Content = new StringContent(JsonSerializer.Serialize(request, jsonOptions), Encoding.UTF8, "application/json");
 
             using var response = await _httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
             if (!response.IsSuccessStatusCode)

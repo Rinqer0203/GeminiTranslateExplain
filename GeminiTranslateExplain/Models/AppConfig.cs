@@ -34,20 +34,20 @@ namespace GeminiTranslateExplain.Models
 
         public string OpenAiApiKey { get; set; } = string.Empty;
 
-        public WindowType SelectedResultWindowType { get; set; } = WindowType.SimpleResultWindow;
+        public WindowType SelectedResultWindowType { get; set; } = WindowType.MainWindow;
 
         public bool UseCustomInstruction { get; set; } = false;
 
         public AiModel[] AIModels { get; set; } = [
-            new AiModel("gemini-2.0-flash-lite", AiType.gemini),
-            new AiModel("gemini-2.0-flash", AiType.gemini),
-            new AiModel("gpt-4o-mini", AiType.openai),
-            new AiModel("gpt-4.1-nano", AiType.openai),
+            new AiModel("gemini-2.5-flash-lite", AiType.gemini),
+            new AiModel("gemini-2.5-flash", AiType.gemini),
+            new AiModel("gemini-2.5-pro", AiType.gemini),
+            new AiModel("gemini-flash-latest", AiType.gemini),
+            new AiModel("gpt-5.5", AiType.openai),
+            new AiModel("gpt-5.4-mini", AiType.openai),
+            new AiModel("gpt-5.4-nano", AiType.openai),
             new AiModel("gpt-4.1-mini", AiType.openai),
-            new AiModel("gpt-4.1", AiType.openai),
-            new AiModel("gpt-5-mini", AiType.openai),
-            new AiModel("gpt-5-nano", AiType.openai),
-            new AiModel("gpt-5.2", AiType.openai),
+            new AiModel("gpt-4o-mini", AiType.openai),
         ];
 
         public AiModel SelectedAiModel { get; set; }
@@ -147,6 +147,10 @@ namespace GeminiTranslateExplain.Models
             InitializePromptProfiles(loadedConfig);
 
             if (loadedConfig.GlobalHotKey.Key == Key.None || loadedConfig.GlobalHotKey.Modifiers == ModifierKeys.None)
+            {
+                loadedConfig.GlobalHotKey = HotKeyDefinition.Default;
+            }
+            else if (loadedConfig.GlobalHotKey.IsPlainCopyShortcut())
             {
                 loadedConfig.GlobalHotKey = HotKeyDefinition.Default;
             }

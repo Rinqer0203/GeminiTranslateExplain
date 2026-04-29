@@ -16,5 +16,10 @@ namespace GeminiTranslateExplain.Models
         public static HotKeyDefinition Default => new HotKeyDefinition(ModifierKeys.Control, Key.J);
 
         public static HotKeyDefinition ScreenshotDefault => new HotKeyDefinition(ModifierKeys.Control | ModifierKeys.Alt, Key.S);
+
+        public bool IsPlainCopyShortcut()
+        {
+            return Modifiers == ModifierKeys.Control && Key == Key.C;
+        }
     }
 }
