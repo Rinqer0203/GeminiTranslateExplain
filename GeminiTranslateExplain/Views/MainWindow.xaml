@@ -52,7 +52,7 @@
             <ComboBox
                 Width="190"
                 Height="36"
-                Margin="12,0,8,0"
+                Margin="12,0,4,0"
                 HorizontalContentAlignment="Stretch"
                 VerticalContentAlignment="Center"
                 materialDesign:HintAssist.Hint="モデル"
@@ -62,6 +62,18 @@
                 ItemsSource="{Binding AiModels}"
                 SelectedItem="{Binding SelectedAiModel, Mode=TwoWay}"
                 Style="{StaticResource MaterialDesignOutlinedComboBox}" />
+            <Button
+                Width="30"
+                Height="30"
+                Margin="0,0,8,0"
+                Command="{Binding OpenModelAddWindowCommand}"
+                Style="{StaticResource MaterialDesignIconForegroundButton}"
+                ToolTip="モデルを追加">
+                <materialDesign:PackIcon
+                    Width="17"
+                    Height="17"
+                    Kind="Plus" />
+            </Button>
             <ComboBox
                 Width="160"
                 Height="36"

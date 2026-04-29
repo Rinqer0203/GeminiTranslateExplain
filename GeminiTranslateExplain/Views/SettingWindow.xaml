@@ -120,7 +120,7 @@
                     Grid.Column="1"
                     Margin="0,0,0,20"
                     HorizontalAlignment="Left"
-                    Content="ダブルコピーで翻訳を有効にする"
+                    Content="ダブルコピーでトリガーする"
                     IsChecked="{Binding EnableDoubleCopyAction}"
                     Style="{StaticResource MaterialDesignCheckBox}" />
 

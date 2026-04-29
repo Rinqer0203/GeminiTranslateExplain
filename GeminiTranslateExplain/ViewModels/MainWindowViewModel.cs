@@ -12,7 +12,7 @@ namespace GeminiTranslateExplain
 {
     internal partial class MainWindowViewModel : ObservableObject, IProgressTextReceiver
     {
-        public AiModel[] AiModels { get; } = AppConfig.Instance.AIModels;
+        public ObservableCollection<AiModel> AiModels { get; } = new(AppConfig.Instance.AIModels);
         public ObservableCollection<PromptProfile> PromptProfiles { get; } = AppConfig.Instance.PromptProfiles;
         public ObservableCollection<ChatMessage> ChatMessages { get; } = new();
 
@@ -71,6 +71,29 @@ namespace GeminiTranslateExplain
             var promptEditorWindow = new Views.PromptEditorWindow();
             promptEditorWindow.Owner = System.Windows.Application.Current.MainWindow;
             promptEditorWindow.ShowDialog();
+        }
+
+        [RelayCommand]
+        private void OpenModelAddWindow()
+        {
+            var viewModel = new ModelAddWindowViewModel(AiModels);
+            var window = new Views.ModelAddWindow(viewModel)
+            {
+                Owner = System.Windows.Application.Current.MainWindow
+            };
+
+            if (window.ShowDialog() != true || viewModel.AddedModel == null)
+                return;
+
+            var model = viewModel.AddedModel.Value;
+            if (!AiModels.Contains(model))
+            {
+                AiModels.Add(model);
+                AppConfig.Instance.AIModels = AiModels.ToArray();
+            }
+
+            SelectedAiModel = model;
+            AppConfig.Instance.SaveConfigJson();
         }
 
         [RelayCommand]
