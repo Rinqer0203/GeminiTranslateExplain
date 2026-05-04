@@ -71,7 +71,7 @@ jobs:
 
       - name: Restore
         shell: pwsh
-        run: msbuild $env:PROJECT_PATH /t:Restore /p:RuntimeIdentifier=$env:RUNTIME_ID
+        run: msbuild $env:PROJECT_PATH /t:Restore /p:RuntimeIdentifier=$env:RUNTIME_ID /p:SelfContained=true
 
       - name: Publish
         shell: pwsh
@@ -81,7 +81,9 @@ jobs:
             /p:Configuration=Release `
             /p:RuntimeIdentifier=$env:RUNTIME_ID `
             /p:PublishDir="$env:PUBLISH_DIR\" `
-            /p:SelfContained=false `
+            /p:SelfContained=true `
+            /p:PublishSingleFile=true `
+            /p:PublishReadyToRun=false `
             /p:UseSharedCompilation=false
 
       - name: Install Velopack CLI
