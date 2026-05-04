@@ -1,11 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using GeminiTranslateExplain.Models;
-using GeminiTranslateExplain.Services;
 using IWshRuntimeLibrary;
 using System.Diagnostics;
 using System.IO;
-using System.Windows;
 using System.Windows.Input;
 
 namespace GeminiTranslateExplain
@@ -34,15 +31,6 @@ namespace GeminiTranslateExplain
 
         [ObservableProperty]
         private bool _enableDoubleCopyAction = AppConfig.Instance.EnableDoubleCopyAction;
-
-        [ObservableProperty]
-        private bool _checkUpdatesOnStartup = AppConfig.Instance.CheckUpdatesOnStartup;
-
-        [ObservableProperty]
-        private string _updateStatus = string.Empty;
-
-        [ObservableProperty]
-        private bool _isCheckingForUpdates;
 
         [ObservableProperty]
         private HotKeyDefinition _globalHotKey = AppConfig.Instance.GlobalHotKey;
@@ -147,11 +135,6 @@ namespace GeminiTranslateExplain
             AppConfig.Instance.EnableDoubleCopyAction = value;
         }
 
-        partial void OnCheckUpdatesOnStartupChanged(bool value)
-        {
-            AppConfig.Instance.CheckUpdatesOnStartup = value;
-        }
-
         partial void OnGlobalHotKeyChanged(HotKeyDefinition value)
         {
             AppConfig.Instance.UpdateGlobalHotKey(value);
@@ -172,66 +155,6 @@ namespace GeminiTranslateExplain
         public void SetScreenshotHotKey(HotKeyDefinition hotKey)
         {
             ScreenshotHotKey = hotKey;
-        }
-
-        [RelayCommand]
-        private async Task CheckForUpdatesAsync()
-        {
-            if (IsCheckingForUpdates)
-                return;
-
-            IsCheckingForUpdates = true;
-            UpdateStatus = "更新を確認しています...";
-
-            try
-            {
-                var result = await AppUpdateService.Instance.CheckForUpdatesAsync(
-                    progress => SetUpdateStatus($"更新をダウンロードしています... {progress}%"));
-
-                switch (result.Status)
-                {
-                    case UpdateCheckStatus.NotManagedByVelopack:
-                        UpdateStatus = "Velopackパッケージとして起動されていないため更新できません。";
-                        break;
-                    case UpdateCheckStatus.UpToDate:
-                        UpdateStatus = "最新版です。";
-                        break;
-                    case UpdateCheckStatus.UpdateReady:
-                        UpdateStatus = "更新のダウンロードが完了しました。";
-                        var versionText = string.IsNullOrWhiteSpace(result.Version) ? "新しいバージョン" : $"バージョン {result.Version}";
-                        var response = System.Windows.MessageBox.Show(
-                            $"{versionText} を適用するため、アプリを再起動しますか？",
-                            "更新",
-                            MessageBoxButton.YesNo,
-                            MessageBoxImage.Information);
-                        if (response == MessageBoxResult.Yes)
-                        {
-                            await AppUpdateService.Instance.ApplyPendingUpdateAndRestartAsync();
-                        }
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                ErrorLogger.Log("Manual update check failed", ex);
-                UpdateStatus = $"更新確認に失敗しました: {ex.Message}";
-            }
-            finally
-            {
-                IsCheckingForUpdates = false;
-            }
-        }
-
-        private void SetUpdateStatus(string message)
-        {
-            var dispatcher = System.Windows.Application.Current?.Dispatcher;
-            if (dispatcher == null || dispatcher.CheckAccess())
-            {
-                UpdateStatus = message;
-                return;
-            }
-
-            dispatcher.Invoke(() => UpdateStatus = message);
         }
 
         private static string FormatHotKey(HotKeyDefinition hotKey)

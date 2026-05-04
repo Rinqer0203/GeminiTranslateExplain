@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Windows.Input;
-using GeminiTranslateExplain.Services;
 
 namespace GeminiTranslateExplain.Models
 {
@@ -97,26 +96,21 @@ namespace GeminiTranslateExplain.Models
 
         public bool ScreenshotStealthMode { get; set; } = false;
 
-        public bool CheckUpdatesOnStartup { get; set; } = true;
-
         // ここまでJsonSerializerでシリアライズされるプロパティ
 
         private static AppConfig LoadConfig()
         {
             AppConfig? config = null;
-            AppPaths.EnsureDataDirectories();
-            MigrateLegacyConfigIfNeeded();
-
-            if (File.Exists(AppPaths.ConfigFilePath))
+            if (File.Exists(ConfigFileName))
             {
                 try
                 {
-                    string json = File.ReadAllText(AppPaths.ConfigFilePath);
+                    string json = File.ReadAllText(ConfigFileName);
                     config = JsonSerializer.Deserialize<AppConfig>(json);
                 }
                 catch (JsonException ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Error loading config file '{AppPaths.ConfigFilePath}': {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Error loading config file '{ConfigFileName}': {ex.Message}");
                 }
                 catch (Exception ex) // その他の予期せぬエラー
                 {
@@ -174,12 +168,11 @@ namespace GeminiTranslateExplain.Models
             try
             {
                 string json = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
-                AppPaths.EnsureDataDirectories();
-                File.WriteAllText(AppPaths.ConfigFilePath, json);
+                File.WriteAllText(ConfigFileName, json);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error saving config file '{AppPaths.ConfigFilePath}': {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error saving config file '{ConfigFileName}': {ex.Message}");
             }
         }
 
@@ -279,25 +272,6 @@ namespace GeminiTranslateExplain.Models
             else if (config.PromptProfiles.Any(p => p.Id == config.SelectedPromptId) == false)
             {
                 config.SelectedPromptId = config.PromptProfiles[0].Id;
-            }
-        }
-
-        private static void MigrateLegacyConfigIfNeeded()
-        {
-            if (File.Exists(AppPaths.ConfigFilePath))
-                return;
-
-            var legacyPath = Path.Combine(AppContext.BaseDirectory, ConfigFileName);
-            if (!File.Exists(legacyPath))
-                return;
-
-            try
-            {
-                File.Copy(legacyPath, AppPaths.ConfigFilePath, overwrite: false);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error migrating config file from '{legacyPath}' to '{AppPaths.ConfigFilePath}': {ex.Message}");
             }
         }
     }

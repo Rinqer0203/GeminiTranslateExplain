@@ -124,27 +124,6 @@
                     IsChecked="{Binding EnableDoubleCopyAction}"
                     Style="{StaticResource MaterialDesignCheckBox}" />
 
-                <CheckBox
-                    Margin="0,0,0,20"
-                    HorizontalAlignment="Left"
-                    Content="起動時に更新を確認する"
-                    IsChecked="{Binding CheckUpdatesOnStartup}"
-                    Style="{StaticResource MaterialDesignCheckBox}" />
-
-                <StackPanel
-                    Margin="0,0,0,20"
-                    Orientation="Horizontal">
-                    <Button
-                        Command="{Binding CheckForUpdatesCommand}"
-                        Content="更新を確認"
-                        Style="{StaticResource MaterialDesignOutlinedButton}" />
-                    <TextBlock
-                        Margin="12,0,0,0"
-                        VerticalAlignment="Center"
-                        Text="{Binding UpdateStatus}"
-                        TextWrapping="Wrap" />
-                </StackPanel>
-
             </StackPanel>
         </ScrollViewer>
     </Grid>

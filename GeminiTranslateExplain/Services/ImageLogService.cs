@@ -9,7 +9,7 @@ namespace GeminiTranslateExplain.Services
 
         public static string SaveSentImage(byte[] imageBytes, string aiProvider)
         {
-            var logDirectory = AppPaths.ImageLogDirectory;
+            var logDirectory = Path.Combine(AppContext.BaseDirectory, LogDirectoryName);
             Directory.CreateDirectory(logDirectory);
 
             var safeProviderName = string.Concat(aiProvider.Select(c => char.IsLetterOrDigit(c) ? c : '_'));

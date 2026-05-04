@@ -5,7 +5,7 @@ namespace GeminiTranslateExplain.Services
 {
     public static class ErrorLogger
     {
-        private static readonly string logFilePath = AppPaths.ErrorLogFilePath;
+        private static readonly string logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error.log");
 
         public static void Log(string type, Exception? ex)
         {
@@ -16,7 +16,6 @@ namespace GeminiTranslateExplain.Services
 
             try
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(logFilePath)!);
                 File.AppendAllText(logFilePath, sb.ToString(), Encoding.UTF8);
             }
             catch { }
