@@ -1,0 +1,112 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version, for example 1.0.1 or v1.0.1"
+        required: true
+        type: string
+      prerelease:
+        description: "Mark GitHub Release as prerelease"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build single-file release
+    runs-on: windows-latest
+
+    env:
+      PROJECT_PATH: GeminiTranslateExplain/GeminiTranslateExplain.csproj
+      RUNTIME_ID: win-x86
+      PUBLISH_DIR: ${{ github.workspace }}\artifacts\publish
+      RELEASE_DIR: ${{ github.workspace }}\artifacts\release
+      EXE_NAME: GeminiTranslateExplain.exe
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $version = "${{ inputs.version }}"
+          } else {
+            $version = "${{ github.ref_name }}"
+          }
+
+          if ($version.StartsWith("v")) {
+            $version = $version.Substring(1)
+          }
+
+          if ($version -notmatch '^\d+\.\d+\.\d+([-.][0-9A-Za-z.-]+)?$') {
+            throw "Version '$version' is invalid. Use a SemVer value such as 1.0.1."
+          }
+
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "tag=v$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore
+        shell: pwsh
+        run: msbuild $env:PROJECT_PATH /t:Restore /p:RuntimeIdentifier=$env:RUNTIME_ID /p:SelfContained=true
+
+      - name: Publish single-file app
+        shell: pwsh
+        run: |
+          msbuild $env:PROJECT_PATH `
+            /t:Publish `
+            /p:Configuration=Release `
+            /p:RuntimeIdentifier=$env:RUNTIME_ID `
+            /p:PublishDir="$env:PUBLISH_DIR\" `
+            /p:SelfContained=true `
+            /p:PublishSingleFile=true `
+            /p:PublishReadyToRun=false `
+            /p:UseSharedCompilation=false
+
+      - name: Prepare release asset
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path $env:RELEASE_DIR | Out-Null
+          $version = "${{ steps.version.outputs.version }}"
+          $source = Join-Path $env:PUBLISH_DIR $env:EXE_NAME
+          $assetName = "GeminiTranslateExplain-$version-win-x86.exe"
+          $assetPath = Join-Path $env:RELEASE_DIR $assetName
+          Copy-Item -LiteralPath $source -Destination $assetPath -Force
+
+          $hash = Get-FileHash -Algorithm SHA256 -LiteralPath $assetPath
+          "$($hash.Hash.ToLowerInvariant())  $assetName" |
+            Out-File -FilePath (Join-Path $env:RELEASE_DIR "SHA256SUMS.txt") -Encoding utf8
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GeminiTranslateExplain-${{ steps.version.outputs.version }}-win-x86
+          path: ${{ env.RELEASE_DIR }}\*
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: GeminiTranslateExplain ${{ steps.version.outputs.version }}
+          prerelease: ${{ github.event_name == 'workflow_dispatch' && inputs.prerelease == true }}
+          files: |
+            ${{ env.RELEASE_DIR }}\*
