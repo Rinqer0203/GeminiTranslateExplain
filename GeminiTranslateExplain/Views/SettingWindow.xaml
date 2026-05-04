@@ -124,6 +124,33 @@
                     IsChecked="{Binding EnableDoubleCopyAction}"
                     Style="{StaticResource MaterialDesignCheckBox}" />
 
+                <Border
+                    Margin="0,12,0,0"
+                    Padding="0,16,0,0"
+                    BorderBrush="Gray"
+                    BorderThickness="0,1,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock
+                            Grid.Column="0"
+                            FontSize="13"
+                            Text="{Binding UpdateStatusText}"
+                            VerticalAlignment="Center" />
+
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="16,0,0,0"
+                            FontSize="13"
+                            Foreground="Gray"
+                            Text="{Binding AppVersionText}"
+                            VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
+
             </StackPanel>
         </ScrollViewer>
     </Grid>

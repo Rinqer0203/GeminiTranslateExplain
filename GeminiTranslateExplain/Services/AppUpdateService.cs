@@ -25,6 +25,10 @@ namespace GeminiTranslateExplain.Services
 
         public bool IsUpdateAvailable => _updater.IsUpdateAvailable;
 
+        public string CurrentVersion => FormatVersion(_updater.CurrentVersion);
+
+        public string? LatestVersion => _updater.LatestReleaseTagVersionStr;
+
         public static bool CanUseUpdater => OperatingSystem.IsWindows() && EntryApplication.IsDotNetSingleFileApp;
 
         public async Task<bool> CheckForUpdatesAsync(CancellationToken cancellationToken = default)
@@ -68,6 +72,18 @@ namespace GeminiTranslateExplain.Services
             {
                 _operationLock.Release();
             }
+        }
+
+        private static string FormatVersion(Version? version)
+        {
+            if (version == null)
+                return "不明";
+
+            var fieldCount = version.Build >= 0 ? 3 : 2;
+            if (version.Revision >= 0)
+                fieldCount = 4;
+
+            return version.ToString(fieldCount);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using GeminiTranslateExplain.Models;
+using GeminiTranslateExplain.Services;
 using IWshRuntimeLibrary;
 using System.Diagnostics;
 using System.IO;
@@ -44,6 +45,11 @@ namespace GeminiTranslateExplain
         [ObservableProperty]
         private string _screenshotHotKeyDisplay = string.Empty;
 
+        [ObservableProperty]
+        private string _updateStatusText = "更新を確認中です";
+
+        public string AppVersionText => $"バージョン {AppUpdateService.Instance.CurrentVersion}";
+
         public SettingWindowViewModel()
         {
             WindowTypeItems = Enum.GetValues(typeof(WindowType))
@@ -60,6 +66,7 @@ namespace GeminiTranslateExplain
             SelectedThemeMode = AppConfig.Instance.ThemeMode;
             GlobalHotKeyDisplay = FormatHotKey(GlobalHotKey);
             ScreenshotHotKeyDisplay = FormatHotKey(ScreenshotHotKey);
+            _ = CheckUpdateStatusAsync();
         }
 
         public void OnClosed()
@@ -155,6 +162,27 @@ namespace GeminiTranslateExplain
         public void SetScreenshotHotKey(HotKeyDefinition hotKey)
         {
             ScreenshotHotKey = hotKey;
+        }
+
+        private async Task CheckUpdateStatusAsync()
+        {
+            if (!AppUpdateService.CanUseUpdater)
+            {
+                UpdateStatusText = "リリース版で更新を確認できます";
+                return;
+            }
+
+            var updateFound = await AppUpdateService.Instance.CheckForUpdatesAsync();
+            if (updateFound)
+            {
+                var latestVersion = AppUpdateService.Instance.LatestVersion;
+                UpdateStatusText = string.IsNullOrWhiteSpace(latestVersion)
+                    ? "新しいバージョンがあります"
+                    : $"新しいバージョンがあります ({latestVersion})";
+                return;
+            }
+
+            UpdateStatusText = "最新の状態です";
         }
 
         private static string FormatHotKey(HotKeyDefinition hotKey)
