@@ -168,7 +168,7 @@ namespace GeminiTranslateExplain
         {
             if (!AppUpdateService.CanUseUpdater)
             {
-                UpdateStatusText = "リリース版で更新を確認できます";
+                UpdateStatusText = "デバッグビルドでは更新を確認しません";
                 return;
             }
 

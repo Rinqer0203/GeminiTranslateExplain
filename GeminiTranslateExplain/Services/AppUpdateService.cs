@@ -29,7 +29,9 @@ namespace GeminiTranslateExplain.Services
 
         public string? LatestVersion => _updater.LatestReleaseTagVersionStr;
 
-        public static bool CanUseUpdater => OperatingSystem.IsWindows() && EntryApplication.IsDotNetSingleFileApp;
+        public static bool CanUseUpdater =>
+            OperatingSystem.IsWindows()
+            && string.Equals(EntryApplication.AssemblyConfiguration, "Release", StringComparison.OrdinalIgnoreCase);
 
         public async Task<bool> CheckForUpdatesAsync(CancellationToken cancellationToken = default)
         {
