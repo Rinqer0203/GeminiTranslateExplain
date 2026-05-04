@@ -18,6 +18,7 @@
         <local:MainWindowViewModel />
     </Window.DataContext>
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <local:ZeroToVisibilityConverter x:Key="ZeroToVisibilityConverter" />
     </Window.Resources>
 
@@ -98,21 +99,35 @@
                     Kind="Pencil" />
             </Button>
         </StackPanel>
-        <Button
+        <StackPanel
             Grid.Row="0"
             Grid.Column="1"
-            Width="32"
-            Height="32"
             Margin="0,0,8,0"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
-            Command="{Binding StartNewChatCommand}"
-            Style="{StaticResource MaterialDesignIconForegroundButton}">
-            <materialDesign:PackIcon
-                Width="18"
-                Height="18"
-                Kind="ChatPlus" />
-        </Button>
+            Orientation="Horizontal">
+            <Button
+                Height="32"
+                MinWidth="104"
+                Margin="0,0,8,0"
+                Padding="12,0"
+                Command="{Binding UpdateApplicationCommand}"
+                FontSize="13"
+                Style="{StaticResource MaterialDesignOutlinedButton}"
+                Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <TextBlock Text="{Binding UpdateButtonText}" />
+            </Button>
+            <Button
+                Width="32"
+                Height="32"
+                Command="{Binding StartNewChatCommand}"
+                Style="{StaticResource MaterialDesignIconForegroundButton}">
+                <materialDesign:PackIcon
+                    Width="18"
+                    Height="18"
+                    Kind="ChatPlus" />
+            </Button>
+        </StackPanel>
 
         <Border
             Grid.Row="1"

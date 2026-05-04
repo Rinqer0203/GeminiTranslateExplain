@@ -79,6 +79,8 @@ jobs:
             /p:SelfContained=true `
             /p:PublishSingleFile=true `
             /p:PublishReadyToRun=false `
+            /p:Version="${{ steps.version.outputs.version }}" `
+            /p:InformationalVersion="${{ steps.version.outputs.version }}" `
             /p:UseSharedCompilation=false
 
       - name: Prepare release asset

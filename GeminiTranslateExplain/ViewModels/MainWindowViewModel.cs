@@ -5,6 +5,7 @@ using GeminiTranslateExplain.Services;
 using GeminiTranslateExplain.ViewModels;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -38,9 +39,21 @@ namespace GeminiTranslateExplain
         [ObservableProperty]
         private string _questionText = string.Empty;
 
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(UpdateApplicationCommand))]
+        private bool _isUpdateAvailable;
+
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(UpdateApplicationCommand))]
+        private bool _isUpdatingApplication;
+
+        [ObservableProperty]
+        private string _updateButtonText = "アプリを更新";
+
         public MainWindowViewModel()
         {
             ApiRequestManager.Instance.RegisterProgressReceiver(this);
+            _ = CheckForUpdatesOnStartupAsync();
         }
 
         [RelayCommand]
@@ -103,6 +116,43 @@ namespace GeminiTranslateExplain
             ChatMessages.Clear();
             QuestionText = string.Empty;
             _streamingMessage = null;
+        }
+
+        private async Task CheckForUpdatesOnStartupAsync()
+        {
+            var updateFound = await AppUpdateService.Instance.CheckForUpdatesAsync();
+            IsUpdateAvailable = updateFound;
+        }
+
+        private bool CanUpdateApplication()
+        {
+            return IsUpdateAvailable && !IsUpdatingApplication;
+        }
+
+        [RelayCommand(CanExecute = nameof(CanUpdateApplication))]
+        private async Task UpdateApplication()
+        {
+            IsUpdatingApplication = true;
+            UpdateButtonText = "更新中...";
+
+            try
+            {
+                await AppUpdateService.Instance.DownloadAndInstallUpdateAsync();
+                IsUpdateAvailable = AppUpdateService.Instance.IsUpdateAvailable;
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(
+                    $"更新に失敗しました。\n{ex.Message}",
+                    "アプリの更新",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+            finally
+            {
+                IsUpdatingApplication = false;
+                UpdateButtonText = "アプリを更新";
+            }
         }
 
         public async Task<string> SubmitMessageAsync(string text, bool resetConversation)
