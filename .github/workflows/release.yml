@@ -1,0 +1,116 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version without leading v, for example 1.0.1"
+        required: true
+        type: string
+      prerelease:
+        description: "Mark GitHub Release as prerelease. The app will not detect prereleases."
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build Velopack release
+    runs-on: windows-latest
+
+    env:
+      PROJECT_PATH: GeminiTranslateExplain/GeminiTranslateExplain.csproj
+      PACK_ID: GeminiTranslateExplain
+      PACK_TITLE: GeminiTranslateExplain
+      PACK_AUTHORS: Rinqer0203
+      MAIN_EXE: GeminiTranslateExplain.exe
+      RUNTIME_ID: win-x86
+      PUBLISH_DIR: ${{ github.workspace }}\artifacts\publish
+      RELEASES_DIR: ${{ github.workspace }}\artifacts\velopack
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $version = "${{ inputs.version }}"
+          } else {
+            $version = "${{ github.ref_name }}"
+            if ($version.StartsWith("v")) {
+              $version = $version.Substring(1)
+            }
+          }
+
+          if ($version -notmatch '^\d+\.\d+\.\d+([-.][0-9A-Za-z.-]+)?$') {
+            throw "Version '$version' is invalid. Use a SemVer value such as 1.0.1."
+          }
+
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "tag=v$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore
+        shell: pwsh
+        run: msbuild $env:PROJECT_PATH /t:Restore /p:RuntimeIdentifier=$env:RUNTIME_ID
+
+      - name: Publish
+        shell: pwsh
+        run: |
+          msbuild $env:PROJECT_PATH `
+            /t:Publish `
+            /p:Configuration=Release `
+            /p:RuntimeIdentifier=$env:RUNTIME_ID `
+            /p:PublishDir="$env:PUBLISH_DIR\" `
+            /p:SelfContained=false `
+            /p:UseSharedCompilation=false
+
+      - name: Install Velopack CLI
+        shell: pwsh
+        run: dotnet tool install -g vpk --version 0.0.1298
+
+      - name: Package Velopack release
+        shell: pwsh
+        run: |
+          vpk pack `
+            --packId $env:PACK_ID `
+            --packVersion "${{ steps.version.outputs.version }}" `
+            --packDir "$env:PUBLISH_DIR" `
+            --mainExe $env:MAIN_EXE `
+            --packTitle $env:PACK_TITLE `
+            --packAuthors $env:PACK_AUTHORS `
+            --outputDir "$env:RELEASES_DIR"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: velopack-release-${{ steps.version.outputs.version }}
+          path: ${{ env.RELEASES_DIR }}\*
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: GeminiTranslateExplain ${{ steps.version.outputs.version }}
+          prerelease: ${{ github.event_name == 'workflow_dispatch' && inputs.prerelease == true }}
+          files: |
+            ${{ env.RELEASES_DIR }}\*

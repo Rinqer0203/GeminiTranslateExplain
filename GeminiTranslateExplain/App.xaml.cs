@@ -119,6 +119,11 @@ namespace GeminiTranslateExplain
             AppConfig.Instance.GlobalHotKeyChanged += UpdateGlobalHotKey;
             UpdateScreenshotHotKey(AppConfig.Instance.ScreenshotHotKey);
             AppConfig.Instance.ScreenshotHotKeyChanged += UpdateScreenshotHotKey;
+
+            if (AppConfig.Instance.CheckUpdatesOnStartup)
+            {
+                _ = CheckUpdatesOnStartupAsync();
+            }
         }
 
         protected override void OnExit(ExitEventArgs e)
@@ -188,6 +193,32 @@ namespace GeminiTranslateExplain
         private void SetBrushResource(string key, System.Windows.Media.Color color)
         {
             Resources[key] = new SolidColorBrush(color);
+        }
+
+        private static async Task CheckUpdatesOnStartupAsync()
+        {
+            try
+            {
+                var result = await AppUpdateService.Instance.CheckForUpdatesAsync();
+                if (result.Status != UpdateCheckStatus.UpdateReady)
+                    return;
+
+                var versionText = string.IsNullOrWhiteSpace(result.Version) ? "新しいバージョン" : $"バージョン {result.Version}";
+                var response = System.Windows.MessageBox.Show(
+                    $"{versionText} をダウンロードしました。今すぐ再起動して更新を適用しますか？",
+                    "更新",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Information);
+
+                if (response == MessageBoxResult.Yes)
+                {
+                    await AppUpdateService.Instance.ApplyPendingUpdateAndRestartAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorLogger.Log("Startup update check failed", ex);
+            }
         }
 
         private static void ShowWindow(Window? window)
