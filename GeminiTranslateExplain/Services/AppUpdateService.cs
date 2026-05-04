@@ -7,8 +7,12 @@ namespace GeminiTranslateExplain.Services
     {
         public static AppUpdateService Instance { get; } = new();
 
+        private static readonly TimeSpan CheckCacheDuration = TimeSpan.FromMinutes(10);
+
         private readonly SemaphoreSlim _operationLock = new(1, 1);
         private readonly UpdatumManager _updater;
+        private DateTimeOffset? _lastCheckedAt;
+        private bool _lastCheckResult;
 
         private AppUpdateService()
         {
@@ -30,8 +34,7 @@ namespace GeminiTranslateExplain.Services
         public string? LatestVersion => _updater.LatestReleaseTagVersionStr;
 
         public static bool CanUseUpdater =>
-            OperatingSystem.IsWindows()
-            && string.Equals(EntryApplication.AssemblyConfiguration, "Release", StringComparison.OrdinalIgnoreCase);
+            OperatingSystem.IsWindows();
 
         public async Task<bool> CheckForUpdatesAsync(CancellationToken cancellationToken = default)
         {
@@ -41,7 +44,15 @@ namespace GeminiTranslateExplain.Services
             await _operationLock.WaitAsync(cancellationToken);
             try
             {
-                return await _updater.CheckForUpdatesAsync();
+                if (_lastCheckedAt is DateTimeOffset lastCheckedAt
+                    && DateTimeOffset.UtcNow - lastCheckedAt < CheckCacheDuration)
+                {
+                    return _lastCheckResult;
+                }
+
+                _lastCheckResult = await _updater.CheckForUpdatesAsync();
+                _lastCheckedAt = DateTimeOffset.UtcNow;
+                return _lastCheckResult;
             }
             catch
             {
