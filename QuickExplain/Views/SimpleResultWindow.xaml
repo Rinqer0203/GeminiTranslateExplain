@@ -5,7 +5,9 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:QuickExplain"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:mdxam="clr-namespace:MdXaml;assembly=MdXaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
     Title="SimpleResultWindow"
     Width="400"
     Height="300"
@@ -22,6 +24,79 @@
     <Window.DataContext>
         <local:SimpleResultWindowViewModel />
     </Window.DataContext>
+    <Window.Resources>
+        <sys:Double x:Key="MarkdownFontSize">15</sys:Double>
+        <sys:Double x:Key="MarkdownHeading1FontSize">23.25</sys:Double>
+        <sys:Double x:Key="MarkdownHeading2FontSize">20.25</sys:Double>
+        <sys:Double x:Key="MarkdownHeading3FontSize">18</sys:Double>
+        <sys:Double x:Key="MarkdownHeading4FontSize">16.5</sys:Double>
+        <sys:Double x:Key="MarkdownHeading5FontSize">15</sys:Double>
+        <sys:Double x:Key="MarkdownHeading6FontSize">14.25</sys:Double>
+        <Style x:Key="SimpleMarkdownParagraphStyle" TargetType="{x:Type Paragraph}">
+            <Setter Property="FontSize" Value="{DynamicResource MarkdownFontSize}" />
+            <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBody}" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+        </Style>
+        <Style
+            x:Key="SimpleMarkdownHeadingStyle"
+            BasedOn="{StaticResource SimpleMarkdownParagraphStyle}"
+            TargetType="{x:Type Paragraph}">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,16,0,8" />
+        </Style>
+        <Style
+            x:Key="SimpleMarkdownHeading1Style"
+            BasedOn="{StaticResource SimpleMarkdownHeadingStyle}"
+            TargetType="{x:Type Paragraph}">
+            <Setter Property="FontSize" Value="{DynamicResource MarkdownHeading1FontSize}" />
+        </Style>
+        <Style
+            x:Key="SimpleMarkdownHeading2Style"
+            BasedOn="{StaticResource SimpleMarkdownHeadingStyle}"
+            TargetType="{x:Type Paragraph}">
+            <Setter Property="FontSize" Value="{DynamicResource MarkdownHeading2FontSize}" />
+        </Style>
+        <Style
+            x:Key="SimpleMarkdownHeading3Style"
+            BasedOn="{StaticResource SimpleMarkdownHeadingStyle}"
+            TargetType="{x:Type Paragraph}">
+            <Setter Property="FontSize" Value="{DynamicResource MarkdownHeading3FontSize}" />
+        </Style>
+        <Style
+            x:Key="SimpleMarkdownHeading4Style"
+            BasedOn="{StaticResource SimpleMarkdownHeadingStyle}"
+            TargetType="{x:Type Paragraph}">
+            <Setter Property="FontSize" Value="{DynamicResource MarkdownHeading4FontSize}" />
+        </Style>
+        <Style
+            x:Key="SimpleMarkdownHeading5Style"
+            BasedOn="{StaticResource SimpleMarkdownHeadingStyle}"
+            TargetType="{x:Type Paragraph}">
+            <Setter Property="FontSize" Value="{DynamicResource MarkdownHeading5FontSize}" />
+        </Style>
+        <Style
+            x:Key="SimpleMarkdownHeading6Style"
+            BasedOn="{StaticResource SimpleMarkdownHeadingStyle}"
+            TargetType="{x:Type Paragraph}">
+            <Setter Property="FontSize" Value="{DynamicResource MarkdownHeading6FontSize}" />
+        </Style>
+        <Style x:Key="SimpleMarkdownTableRowGroupStyle" TargetType="{x:Type TableRowGroup}">
+            <Setter Property="FontSize" Value="{DynamicResource MarkdownFontSize}" />
+            <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBody}" />
+        </Style>
+        <mdxam:Markdown
+            x:Key="SimpleMarkdownEngine"
+            Heading1Style="{StaticResource SimpleMarkdownHeading1Style}"
+            Heading2Style="{StaticResource SimpleMarkdownHeading2Style}"
+            Heading3Style="{StaticResource SimpleMarkdownHeading3Style}"
+            Heading4Style="{StaticResource SimpleMarkdownHeading4Style}"
+            Heading5Style="{StaticResource SimpleMarkdownHeading5Style}"
+            Heading6Style="{StaticResource SimpleMarkdownHeading6Style}"
+            NormalParagraphStyle="{StaticResource SimpleMarkdownParagraphStyle}"
+            TableBodyStyle="{StaticResource SimpleMarkdownTableRowGroupStyle}"
+            TableHeaderStyle="{StaticResource SimpleMarkdownTableRowGroupStyle}" />
+        <local:SafeMarkdownToFlowDocumentConverter x:Key="SimpleSafeMarkdownToFlowDocumentConverter" Markdown="{StaticResource SimpleMarkdownEngine}" />
+    </Window.Resources>
 
     <Grid>
         <!--  背景  -->
@@ -59,17 +134,18 @@
                 </Button>
 
                 <!--  表示内容  -->
-                <TextBox
+                <FlowDocumentScrollViewer
                     Grid.Row="0"
                     Margin="10,30,10,10"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
                     local:FontZoomBehavior.IsZoomEnabled="True"
-                    AcceptsReturn="True"
-                    IsReadOnly="True"
-                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                    Text="{Binding TranslatedText}"
-                    TextWrapping="Wrap" />
+                    FontSize="{DynamicResource MarkdownFontSize}"
+                    Foreground="{DynamicResource MaterialDesignBody}"
+                    Document="{Binding TranslatedText, Converter={StaticResource SimpleSafeMarkdownToFlowDocumentConverter}}"
+                    HorizontalScrollBarVisibility="Disabled"
+                    IsToolBarVisible="False"
+                    VerticalScrollBarVisibility="Auto" />
 
                 <TextBox
                     Grid.Row="1"

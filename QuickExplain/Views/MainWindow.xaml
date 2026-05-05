@@ -5,7 +5,9 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:QuickExplain"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:mdxam="clr-namespace:MdXaml;assembly=MdXaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
     Title="QuickExplain"
     Width="800"
     Height="450"
@@ -20,6 +22,83 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <local:ZeroToVisibilityConverter x:Key="ZeroToVisibilityConverter" />
+        <sys:Double x:Key="MarkdownFontSize">15</sys:Double>
+        <sys:Double x:Key="MarkdownHeading1FontSize">23.25</sys:Double>
+        <sys:Double x:Key="MarkdownHeading2FontSize">20.25</sys:Double>
+        <sys:Double x:Key="MarkdownHeading3FontSize">18</sys:Double>
+        <sys:Double x:Key="MarkdownHeading4FontSize">16.5</sys:Double>
+        <sys:Double x:Key="MarkdownHeading5FontSize">15</sys:Double>
+        <sys:Double x:Key="MarkdownHeading6FontSize">14.25</sys:Double>
+        <Style x:Key="MarkdownParagraphStyle" TargetType="{x:Type Paragraph}">
+            <Setter Property="FontSize" Value="{DynamicResource MarkdownFontSize}" />
+            <Setter Property="Foreground" Value="{DynamicResource ChatAiBubbleForeground}" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+        </Style>
+        <Style
+            x:Key="MarkdownHeadingStyle"
+            BasedOn="{StaticResource MarkdownParagraphStyle}"
+            TargetType="{x:Type Paragraph}">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,16,0,8" />
+        </Style>
+        <Style
+            x:Key="MarkdownHeading1Style"
+            BasedOn="{StaticResource MarkdownHeadingStyle}"
+            TargetType="{x:Type Paragraph}">
+            <Setter Property="FontSize" Value="{DynamicResource MarkdownHeading1FontSize}" />
+        </Style>
+        <Style
+            x:Key="MarkdownHeading2Style"
+            BasedOn="{StaticResource MarkdownHeadingStyle}"
+            TargetType="{x:Type Paragraph}">
+            <Setter Property="FontSize" Value="{DynamicResource MarkdownHeading2FontSize}" />
+        </Style>
+        <Style
+            x:Key="MarkdownHeading3Style"
+            BasedOn="{StaticResource MarkdownHeadingStyle}"
+            TargetType="{x:Type Paragraph}">
+            <Setter Property="FontSize" Value="{DynamicResource MarkdownHeading3FontSize}" />
+        </Style>
+        <Style
+            x:Key="MarkdownHeading4Style"
+            BasedOn="{StaticResource MarkdownHeadingStyle}"
+            TargetType="{x:Type Paragraph}">
+            <Setter Property="FontSize" Value="{DynamicResource MarkdownHeading4FontSize}" />
+        </Style>
+        <Style
+            x:Key="MarkdownHeading5Style"
+            BasedOn="{StaticResource MarkdownHeadingStyle}"
+            TargetType="{x:Type Paragraph}">
+            <Setter Property="FontSize" Value="{DynamicResource MarkdownHeading5FontSize}" />
+        </Style>
+        <Style
+            x:Key="MarkdownHeading6Style"
+            BasedOn="{StaticResource MarkdownHeadingStyle}"
+            TargetType="{x:Type Paragraph}">
+            <Setter Property="FontSize" Value="{DynamicResource MarkdownHeading6FontSize}" />
+        </Style>
+        <Style
+            x:Key="MarkdownListStyle"
+            BasedOn="{StaticResource MarkdownParagraphStyle}"
+            TargetType="{x:Type List}">
+            <Setter Property="MarkerStyle" Value="Disc" />
+        </Style>
+        <Style x:Key="MarkdownTableRowGroupStyle" TargetType="{x:Type TableRowGroup}">
+            <Setter Property="FontSize" Value="{DynamicResource MarkdownFontSize}" />
+            <Setter Property="Foreground" Value="{DynamicResource ChatAiBubbleForeground}" />
+        </Style>
+        <mdxam:Markdown
+            x:Key="MarkdownEngine"
+            Heading1Style="{StaticResource MarkdownHeading1Style}"
+            Heading2Style="{StaticResource MarkdownHeading2Style}"
+            Heading3Style="{StaticResource MarkdownHeading3Style}"
+            Heading4Style="{StaticResource MarkdownHeading4Style}"
+            Heading5Style="{StaticResource MarkdownHeading5Style}"
+            Heading6Style="{StaticResource MarkdownHeading6Style}"
+            NormalParagraphStyle="{StaticResource MarkdownParagraphStyle}"
+            TableBodyStyle="{StaticResource MarkdownTableRowGroupStyle}"
+            TableHeaderStyle="{StaticResource MarkdownTableRowGroupStyle}" />
+        <local:SafeMarkdownToFlowDocumentConverter x:Key="SafeMarkdownToFlowDocumentConverter" Markdown="{StaticResource MarkdownEngine}" />
     </Window.Resources>
 
     <Grid>
@@ -163,6 +242,8 @@
                     Padding="10"
                     Background="Transparent"
                     BorderThickness="0"
+                    FontSize="{DynamicResource MarkdownFontSize}"
+                    local:FontZoomBehavior.IsZoomEnabled="True"
                     ScrollViewer.CanContentScroll="False"
                     local:AutoScrollBehavior.IsEnabled="True"
                     ItemsSource="{Binding ChatMessages}">
@@ -200,17 +281,27 @@
                                     BorderThickness="1"
                                     CornerRadius="10">
                                     <StackPanel>
-                                        <TextBox
-                                            x:Name="MessageBody"
-                                            FontSize="15"
-                                            Background="Transparent"
-                                            BorderThickness="0"
-                                            Foreground="{DynamicResource ChatAiBubbleForeground}"
-                                            materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
-                                            IsReadOnly="True"
-                                            Style="{x:Null}"
-                                            Text="{Binding Text}"
-                                            TextWrapping="Wrap" />
+                                        <Grid>
+                                            <TextBox
+                                                x:Name="UserMessageBody"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Foreground="{DynamicResource ChatAiBubbleForeground}"
+                                                materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
+                                                IsReadOnly="True"
+                                                Style="{x:Null}"
+                                                Text="{Binding Text}"
+                                                TextWrapping="Wrap" />
+                                            <FlowDocumentScrollViewer
+                                                x:Name="AssistantMessageBody"
+                                                local:MouseWheelPassthroughBehavior.IsEnabled="True"
+                                                Foreground="{DynamicResource ChatAiBubbleForeground}"
+                                                Document="{Binding Text, Converter={StaticResource SafeMarkdownToFlowDocumentConverter}}"
+                                                HorizontalScrollBarVisibility="Disabled"
+                                                IsToolBarVisible="False"
+                                                VerticalScrollBarVisibility="Disabled"
+                                                Visibility="Collapsed" />
+                                        </Grid>
                                         <Image
                                             x:Name="MessageImage"
                                             MaxWidth="360"
@@ -230,14 +321,17 @@
                                     <Setter TargetName="MessageBubble" Property="Background" Value="{DynamicResource ChatAiBubbleBackground}" />
                                     <Setter TargetName="MessageBubble" Property="BorderBrush" Value="{DynamicResource ChatAiBubbleBorder}" />
                                     <Setter TargetName="MessageBubble" Property="HorizontalAlignment" Value="Right" />
-                                    <Setter TargetName="MessageBody" Property="Foreground" Value="{DynamicResource ChatUserBubbleForeground}" />
+                                    <Setter TargetName="UserMessageBody" Property="Foreground" Value="{DynamicResource ChatUserBubbleForeground}" />
+                                    <Setter TargetName="AssistantMessageBody" Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding Role}" Value="assistant">
                                     <Setter TargetName="MessageBubble" Property="Background" Value="Transparent" />
                                     <Setter TargetName="MessageBubble" Property="BorderBrush" Value="Transparent" />
                                     <Setter TargetName="MessageBubble" Property="BorderThickness" Value="0" />
                                     <Setter TargetName="MessageBubble" Property="HorizontalAlignment" Value="Left" />
-                                    <Setter TargetName="MessageBody" Property="Foreground" Value="{DynamicResource ChatAiBubbleForeground}" />
+                                    <Setter TargetName="UserMessageBody" Property="Visibility" Value="Collapsed" />
+                                    <Setter TargetName="AssistantMessageBody" Property="Visibility" Value="Visible" />
+                                    <Setter TargetName="AssistantMessageBody" Property="Foreground" Value="{DynamicResource ChatAiBubbleForeground}" />
                                 </DataTrigger>
                             </DataTemplate.Triggers>
                         </DataTemplate>

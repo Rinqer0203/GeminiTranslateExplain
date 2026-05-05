@@ -21,9 +21,14 @@ namespace QuickExplain.Services
         private readonly StringBuilder _sb = new();
         private readonly List<(string role, string text)> _messages = new(64);
         private readonly List<IProgressTextReceiver> _progressReceivers = new();
+        private readonly object _progressUpdateLock = new();
+        private string? _pendingProgressText;
+        private DispatcherTimer? _progressUpdateTimer;
+        private bool _isProgressUpdateTimerActive;
         public event Action? RequestStarted;
         public event Action<bool>? RequestCompleted;
         private bool _requestHadError;
+        private static readonly TimeSpan ProgressUpdateInterval = TimeSpan.FromMilliseconds(80);
 
         private ApiRequestManager()
         {
@@ -112,6 +117,7 @@ namespace QuickExplain.Services
                 await provider.StreamGenerateContentAsync(request, OnGetContentAction, OnStatusAction, OnErrorAction);
 
                 var result = _sb.ToString();
+                FlushProgressReceivers(result);
 
                 // システムの返答のロールをmodelにしているが、
                 // それぞれのCreateRequestで決められたAPIロールに変換されるので問題ない
@@ -170,6 +176,7 @@ namespace QuickExplain.Services
                 await provider.StreamGenerateContentAsync(request, OnGetContentAction, OnStatusAction, OnErrorAction);
 
                 var result = _sb.ToString();
+                FlushProgressReceivers(result);
                 _messages.Add(("user", "[画像]"));
                 _messages.Add(("model", result));
 
@@ -209,13 +216,87 @@ namespace QuickExplain.Services
         private void UpdateProgressReceivers(string text)
         {
             var dispatcher = System.Windows.Application.Current?.Dispatcher;
-            if (dispatcher == null || dispatcher.CheckAccess())
+            if (dispatcher == null)
             {
                 SetProgressReceiverText(text);
                 return;
             }
 
-            dispatcher.BeginInvoke(() => SetProgressReceiverText(text), DispatcherPriority.Background);
+            lock (_progressUpdateLock)
+            {
+                _pendingProgressText = text;
+                if (_isProgressUpdateTimerActive)
+                    return;
+
+                _isProgressUpdateTimerActive = true;
+            }
+
+            dispatcher.BeginInvoke(EnsureProgressUpdateTimer, DispatcherPriority.Background);
+        }
+
+        private void EnsureProgressUpdateTimer()
+        {
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher == null)
+            {
+                PublishPendingProgressText();
+                return;
+            }
+
+            if (_progressUpdateTimer == null)
+            {
+                _progressUpdateTimer = new DispatcherTimer(DispatcherPriority.Background, dispatcher)
+                {
+                    Interval = ProgressUpdateInterval
+                };
+                _progressUpdateTimer.Tick += (_, _) => PublishPendingProgressText();
+            }
+
+            if (!_progressUpdateTimer.IsEnabled)
+                _progressUpdateTimer.Start();
+        }
+
+        private void PublishPendingProgressText()
+        {
+            string? text;
+            lock (_progressUpdateLock)
+            {
+                text = _pendingProgressText;
+                _pendingProgressText = null;
+
+                if (text == null)
+                {
+                    _isProgressUpdateTimerActive = false;
+                    _progressUpdateTimer?.Stop();
+                    return;
+                }
+            }
+
+            SetProgressReceiverText(text);
+        }
+
+        private void FlushProgressReceivers(string text)
+        {
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher == null || dispatcher.CheckAccess())
+            {
+                FlushProgressReceiversOnDispatcher(text);
+                return;
+            }
+
+            dispatcher.Invoke(() => FlushProgressReceiversOnDispatcher(text), DispatcherPriority.Send);
+        }
+
+        private void FlushProgressReceiversOnDispatcher(string text)
+        {
+            lock (_progressUpdateLock)
+            {
+                _pendingProgressText = null;
+                _isProgressUpdateTimerActive = false;
+                _progressUpdateTimer?.Stop();
+            }
+
+            SetProgressReceiverText(text);
         }
 
         private void SetProgressReceiverText(string text)

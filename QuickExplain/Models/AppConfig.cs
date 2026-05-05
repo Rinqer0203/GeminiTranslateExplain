@@ -47,8 +47,7 @@ namespace QuickExplain.Models
 
         private const string DefaultSystemInstruction = "以下の入力テキストを日本語に翻訳し、その意味を簡潔に説明してください。\r\n\r\n" +
             "出力ルール:\r\n" +
-            "- 出力はプレーンテキストのみ\r\n" +
-            "- Markdown記法を使用しない\r\n" +
+            "- 必要に応じてMarkdown記法を使用する\r\n" +
             "- 原文を繰り返さない\r\n" +
             "- 判断理由や内部思考を出力しない\r\n" +
             "- 前置きや締めの文章を付けない\r\n\r\n" +
