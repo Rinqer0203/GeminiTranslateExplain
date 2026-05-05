@@ -1,4 +1,4 @@
-# Project Overview
+# プロジェクト概要
 
 GeminiTranslateExplain は、Windows 向けの WPF デスクトップアプリです。クリップボード、グローバルショートカット、スクリーンショットをトリガーにして、Gemini / OpenAI へ問い合わせ、翻訳・説明・任意プロンプトの結果を表示します。
 
