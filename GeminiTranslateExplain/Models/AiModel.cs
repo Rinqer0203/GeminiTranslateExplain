@@ -3,7 +3,8 @@
     public enum AiType
     {
         gemini,
-        openai
+        openai,
+        ollama
     }
     public readonly record struct AiModel(string Name, AiType Type)
     {

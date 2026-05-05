@@ -12,11 +12,19 @@ namespace GeminiTranslateExplain
     {
         public List<WindowType> WindowTypeItems { get; }
         public List<ThemeModeItem> ThemeModeItems { get; }
+        public List<OllamaKeepAliveItem> OllamaKeepAliveItems { get; }
+
         [ObservableProperty]
         private string _geminiApiKey = AppConfig.Instance.GeminiApiKey;
 
         [ObservableProperty]
         private string _openAiApiKey = AppConfig.Instance.OpenAiApiKey;
+
+        [ObservableProperty]
+        private string _ollamaBaseUrl = AppConfig.Instance.OllamaBaseUrl;
+
+        [ObservableProperty]
+        private string _selectedOllamaKeepAlive = AppConfig.Instance.OllamaKeepAlive;
 
         [ObservableProperty]
         private WindowType _selectedResultWindowType;
@@ -62,8 +70,22 @@ namespace GeminiTranslateExplain
                 new ThemeModeItem(ThemeMode.Light, "ライト"),
                 new ThemeModeItem(ThemeMode.Dark, "ダーク")
             ];
+            OllamaKeepAliveItems =
+            [
+                new OllamaKeepAliveItem("0", "リクエスト後すぐ解放"),
+                new OllamaKeepAliveItem("1m", "短め: 1分"),
+                new OllamaKeepAliveItem("5m", "標準: 5分"),
+                new OllamaKeepAliveItem("30m", "長め: 30分"),
+                new OllamaKeepAliveItem("-1m", "常時保持")
+            ];
             SelectedResultWindowType = AppConfig.Instance.SelectedResultWindowType;
             SelectedThemeMode = AppConfig.Instance.ThemeMode;
+            if (SelectedOllamaKeepAlive == "-1")
+                SelectedOllamaKeepAlive = "-1m";
+
+            if (OllamaKeepAliveItems.Any(item => item.Value == SelectedOllamaKeepAlive) == false)
+                SelectedOllamaKeepAlive = "5m";
+
             GlobalHotKeyDisplay = FormatHotKey(GlobalHotKey);
             ScreenshotHotKeyDisplay = FormatHotKey(ScreenshotHotKey);
             _ = CheckUpdateStatusAsync();
@@ -82,6 +104,20 @@ namespace GeminiTranslateExplain
         partial void OnOpenAiApiKeyChanged(string value)
         {
             AppConfig.Instance.OpenAiApiKey = value;
+        }
+
+        partial void OnOllamaBaseUrlChanged(string value)
+        {
+            AppConfig.Instance.OllamaBaseUrl = string.IsNullOrWhiteSpace(value)
+                ? "http://localhost:11434"
+                : value.Trim();
+        }
+
+        partial void OnSelectedOllamaKeepAliveChanged(string value)
+        {
+            AppConfig.Instance.OllamaKeepAlive = string.IsNullOrWhiteSpace(value)
+                ? "5m"
+                : value;
         }
 
         partial void OnSelectedResultWindowTypeChanged(WindowType value)
@@ -205,5 +241,7 @@ namespace GeminiTranslateExplain
         }
 
         public readonly record struct ThemeModeItem(ThemeMode Mode, string Label);
+
+        public readonly record struct OllamaKeepAliveItem(string Value, string Label);
     }
 }

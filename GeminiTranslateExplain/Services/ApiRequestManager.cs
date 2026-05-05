@@ -1,10 +1,12 @@
 ﻿using GeminiTranslateExplain.Models;
 using GeminiTranslateExplain.Models.Extensions;
+using GeminiTranslateExplain.Services.AiProviders;
 using GeminiTranslateExplain.Services.ApiClients;
 using GeminiTranslateExplain.ViewModels;
 using System;
 using System.Net.Http;
 using System.Text;
+using System.Windows.Threading;
 
 namespace GeminiTranslateExplain.Services
 {
@@ -15,8 +17,7 @@ namespace GeminiTranslateExplain.Services
     {
         public static ApiRequestManager Instance { get; } = new ApiRequestManager();
 
-        private readonly IGeminiApiClient _geminiApiClient;
-        private readonly IOpenAiApiClient _openAiApiClient;
+        private readonly AiProviderRegistry _providerRegistry;
         private readonly StringBuilder _sb = new();
         private readonly List<(string role, string text)> _messages = new(64);
         private readonly List<IProgressTextReceiver> _progressReceivers = new();
@@ -30,13 +31,21 @@ namespace GeminiTranslateExplain.Services
 
             if (AppConfig.Instance.UseDummyApi)
             {
-                _geminiApiClient = new DummyGeminiApiClient();
-                _openAiApiClient = new DummyOpenAiApiClient();
+                _providerRegistry = new AiProviderRegistry(
+                [
+                    new GeminiProvider(new DummyGeminiApiClient()),
+                    new OpenAiProvider(new DummyOpenAiApiClient()),
+                    new DummyOllamaProvider()
+                ]);
             }
             else
             {
-                _geminiApiClient = new GeminiApiClient(httpClient);
-                _openAiApiClient = new OpenAiApiClient(httpClient);
+                _providerRegistry = new AiProviderRegistry(
+                [
+                    new GeminiProvider(new GeminiApiClient(httpClient)),
+                    new OpenAiProvider(new OpenAiApiClient(httpClient)),
+                    new OllamaProvider(httpClient)
+                ]);
             }
 
         }
@@ -83,21 +92,25 @@ namespace GeminiTranslateExplain.Services
                 _sb.Clear();
                 _requestHadError = false;
                 var config = AppConfig.Instance;
-                if (config.SelectedAiModel.Type == AiType.openai)
+                if (string.IsNullOrWhiteSpace(config.SelectedAiModel.Name))
                 {
-                    var request = OpenAiApiRequestModels.CreateRequest(config.SelectedAiModel.Name, GetSystemInstruction(), _messages.AsSpan());
-                    await _openAiApiClient.StreamGenerateContentAsync(config.OpenAiApiKey, request, OnGetContentAction, OnErrorAction);
+                    _requestHadError = true;
+                    return "使用するAIモデルが設定されていません。モデル編集からモデルを追加してください。";
                 }
-                else if (config.SelectedAiModel.Type == AiType.gemini)
-                {
-                    var request = GeminiApiRequestModels.CreateRequest(GetSystemInstruction(), _messages.AsSpan());
-                    await _geminiApiClient.StreamGenerateContentAsync(config.GeminiApiKey, request, config.SelectedAiModel.Name, OnGetContentAction, OnErrorAction);
-                }
-                else
+
+                if (!_providerRegistry.TryGetProvider(config.SelectedAiModel.Type, out var provider))
                 {
                     _requestHadError = true;
                     return "サポートされていないAIモデルです";
                 }
+
+                var request = new AiProviderRequest(
+                    config.SelectedAiModel.Name,
+                    GetSystemInstruction(),
+                    _messages.ToArray());
+                OnStatusAction("応答を待っています...");
+                await provider.StreamGenerateContentAsync(request, OnGetContentAction, OnStatusAction, OnErrorAction);
+
                 var result = _sb.ToString();
 
                 // システムの返答のロールをmodelにしているが、
@@ -136,33 +149,25 @@ namespace GeminiTranslateExplain.Services
 
                 var config = AppConfig.Instance;
                 ImageLogService.SaveSentImage(imageBytes, config.SelectedAiModel.Type.ToString());
-                var imageBase64 = Convert.ToBase64String(imageBytes);
-
-                if (config.SelectedAiModel.Type == AiType.openai)
+                if (string.IsNullOrWhiteSpace(config.SelectedAiModel.Name))
                 {
-                    var baseRequest = OpenAiApiRequestModels.CreateRequest(config.SelectedAiModel.Name, GetSystemInstruction(), _messages.AsSpan());
-                    var messageList = new List<OpenAiApiRequestModels.Message>(baseRequest.messages.Length + 1);
-                    messageList.AddRange(baseRequest.messages);
-
-                    var parts = new[]
-                    {
-                        new OpenAiApiRequestModels.ContentPart("image_url", image_url: new OpenAiApiRequestModels.ImageUrl($"data:image/png;base64,{imageBase64}"))
-                    };
-                    messageList.Add(new OpenAiApiRequestModels.Message("user", parts));
-
-                    var request = new OpenAiApiRequestModels.Request(config.SelectedAiModel.Name, messageList.ToArray());
-                    await _openAiApiClient.StreamGenerateContentAsync(config.OpenAiApiKey, request, OnGetContentAction, OnErrorAction);
+                    _requestHadError = true;
+                    return "使用するAIモデルが設定されていません。モデル編集からモデルを追加してください。";
                 }
-                else if (config.SelectedAiModel.Type == AiType.gemini)
-                {
-                    var request = GeminiApiRequestModels.CreateImageRequest(GetSystemInstruction(), _messages.AsSpan(), imageBase64, "image/png");
-                    await _geminiApiClient.StreamGenerateContentAsync(config.GeminiApiKey, request, config.SelectedAiModel.Name, OnGetContentAction, OnErrorAction);
-                }
-                else
+
+                if (!_providerRegistry.TryGetProvider(config.SelectedAiModel.Type, out var provider))
                 {
                     _requestHadError = true;
                     return "サポートされていないAIモデルです";
                 }
+
+                var request = new AiProviderRequest(
+                    config.SelectedAiModel.Name,
+                    GetSystemInstruction(),
+                    _messages.ToArray(),
+                    imageBytes);
+                OnStatusAction("応答を待っています...");
+                await provider.StreamGenerateContentAsync(request, OnGetContentAction, OnStatusAction, OnErrorAction);
 
                 var result = _sb.ToString();
                 _messages.Add(("user", "[画像]"));
@@ -182,10 +187,15 @@ namespace GeminiTranslateExplain.Services
         {
             _sb.Append(text);
             var currentText = _sb.ToString();
-            foreach (var holder in _progressReceivers)
-            {
-                holder.Text = currentText;
-            }
+            UpdateProgressReceivers(currentText);
+        }
+
+        private void OnStatusAction(string text)
+        {
+            var currentText = _sb.Length == 0
+                ? text
+                : $"{_sb}{Environment.NewLine}{text}";
+            UpdateProgressReceivers(currentText);
         }
 
         private void OnErrorAction(string text)
@@ -193,9 +203,26 @@ namespace GeminiTranslateExplain.Services
             _requestHadError = true;
             _sb.Append(text);
             var currentText = _sb.ToString();
-            foreach (var holder in _progressReceivers)
+            UpdateProgressReceivers(currentText);
+        }
+
+        private void UpdateProgressReceivers(string text)
+        {
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher == null || dispatcher.CheckAccess())
             {
-                holder.Text = currentText;
+                SetProgressReceiverText(text);
+                return;
+            }
+
+            dispatcher.BeginInvoke(() => SetProgressReceiverText(text), DispatcherPriority.Background);
+        }
+
+        private void SetProgressReceiverText(string text)
+        {
+            foreach (var holder in _progressReceivers.ToArray())
+            {
+                holder.Text = text;
             }
         }
 

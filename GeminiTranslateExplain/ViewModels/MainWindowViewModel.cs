@@ -95,18 +95,21 @@ namespace GeminiTranslateExplain
                 Owner = System.Windows.Application.Current.MainWindow
             };
 
-            if (window.ShowDialog() != true || viewModel.AddedModel == null)
+            viewModel.ModelsChanged += EnsureSelectedModelIsConfigured;
+            window.ShowDialog();
+            viewModel.ModelsChanged -= EnsureSelectedModelIsConfigured;
+
+            EnsureSelectedModelIsConfigured();
+            AppConfig.Instance.SaveConfigJson();
+        }
+
+        private void EnsureSelectedModelIsConfigured()
+        {
+            if (AiModels.Contains(SelectedAiModel))
                 return;
 
-            var model = viewModel.AddedModel.Value;
-            if (!AiModels.Contains(model))
-            {
-                AiModels.Add(model);
-                AppConfig.Instance.AIModels = AiModels.ToArray();
-            }
-
-            SelectedAiModel = model;
-            AppConfig.Instance.SaveConfigJson();
+            SelectedAiModel = AiModels.FirstOrDefault();
+            AppConfig.Instance.SelectedAiModel = SelectedAiModel;
         }
 
         [RelayCommand]

@@ -15,23 +15,34 @@ namespace GeminiTranslateExplain.Services
             {
                 AiType.gemini => await GetGeminiModelsAsync(cancellationToken),
                 AiType.openai => await GetOpenAiModelsAsync(cancellationToken),
+                AiType.ollama => await GetOllamaModelsAsync(cancellationToken),
                 _ => Array.Empty<AiModel>()
             };
         }
 
-        public static async Task<(IReadOnlyList<AiModel> Models, IReadOnlyList<string> Errors)> GetAllModelsAsync(CancellationToken cancellationToken = default)
+        public static async Task<(IReadOnlyList<AiModel> Models, IReadOnlyList<string> Errors, IReadOnlyList<string> Statuses)> GetAllModelsAsync(CancellationToken cancellationToken = default)
         {
             var models = new List<AiModel>();
             var errors = new List<string>();
+            var statuses = new List<string>();
 
-            foreach (var provider in new[] { AiType.gemini, AiType.openai })
+            foreach (var provider in new[] { AiType.gemini, AiType.openai, AiType.ollama })
             {
                 try
                 {
-                    models.AddRange(await GetModelsAsync(provider, cancellationToken));
+                    var providerModels = await GetModelsAsync(provider, cancellationToken);
+                    models.AddRange(providerModels);
+                    if (provider == AiType.ollama)
+                        statuses.Add($"Ollama: 接続済み / {providerModels.Count} 件");
                 }
                 catch (Exception ex)
                 {
+                    if (provider == AiType.ollama)
+                    {
+                        statuses.Add("Ollama: 未接続または取得失敗");
+                        continue;
+                    }
+
                     errors.Add(ex.Message);
                 }
             }
@@ -40,7 +51,7 @@ namespace GeminiTranslateExplain.Services
                 .Distinct()
                 .OrderBy(model => model.Name, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(model => model.Type)
-                .ToArray(), errors);
+                .ToArray(), errors, statuses);
         }
 
         private static async Task<IReadOnlyList<AiModel>> GetGeminiModelsAsync(CancellationToken cancellationToken)
@@ -93,6 +104,31 @@ namespace GeminiTranslateExplain.Services
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
                 .Select(name => new AiModel(name, AiType.openai))
+                .ToArray();
+        }
+
+        private static async Task<IReadOnlyList<AiModel>> GetOllamaModelsAsync(CancellationToken cancellationToken)
+        {
+            var baseUrl = AppConfig.Instance.OllamaBaseUrl;
+            if (string.IsNullOrWhiteSpace(baseUrl))
+                throw new InvalidOperationException("Ollama Base URL が設定されていません。");
+
+            var endpoint = new Uri(new Uri(baseUrl.TrimEnd('/') + "/"), "api/tags");
+            using var response = await HttpClient.GetAsync(endpoint, cancellationToken);
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+            if (!response.IsSuccessStatusCode)
+                throw new InvalidOperationException($"Ollama のモデル取得に失敗しました。{CreateErrorDetail(body)}");
+
+            using var document = JsonDocument.Parse(body);
+            if (!document.RootElement.TryGetProperty("models", out var models))
+                return Array.Empty<AiModel>();
+
+            return models.EnumerateArray()
+                .Select(model => model.TryGetProperty("name", out var name) ? name.GetString() ?? string.Empty : string.Empty)
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
+                .Select(name => new AiModel(name, AiType.ollama))
                 .ToArray();
         }
 

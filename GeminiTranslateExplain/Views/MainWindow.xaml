@@ -51,7 +51,7 @@
                     Kind="Cog" />
             </Button>
             <ComboBox
-                Width="190"
+                Width="250"
                 Height="36"
                 Margin="12,0,4,0"
                 HorizontalContentAlignment="Stretch"
@@ -59,21 +59,41 @@
                 materialDesign:HintAssist.Hint="モデル"
                 FontSize="14"
                 Padding="10,6,10,4"
-                DisplayMemberPath="Name"
                 ItemsSource="{Binding AiModels}"
                 SelectedItem="{Binding SelectedAiModel, Mode=TwoWay}"
-                Style="{StaticResource MaterialDesignOutlinedComboBox}" />
+                Style="{StaticResource MaterialDesignOutlinedComboBox}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                Grid.Column="0"
+                                Text="{Binding Name}"
+                                TextTrimming="CharacterEllipsis" />
+                            <TextBlock
+                                Grid.Column="1"
+                                Margin="8,0,0,0"
+                                FontSize="11"
+                                Foreground="{DynamicResource MaterialDesignBodyLight}"
+                                Text="{Binding Type}" />
+                        </Grid>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
             <Button
                 Width="30"
                 Height="30"
                 Margin="0,0,8,0"
                 Command="{Binding OpenModelAddWindowCommand}"
                 Style="{StaticResource MaterialDesignIconForegroundButton}"
-                ToolTip="モデルを追加">
+                ToolTip="モデルを編集">
                 <materialDesign:PackIcon
                     Width="17"
                     Height="17"
-                    Kind="Plus" />
+                    Kind="Pencil" />
             </Button>
             <ComboBox
                 Width="160"

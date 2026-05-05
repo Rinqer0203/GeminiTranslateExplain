@@ -8,20 +8,16 @@ namespace GeminiTranslateExplain.ViewModels
 {
     public partial class ModelAddWindowViewModel : ObservableObject
     {
-        private readonly HashSet<AiModel> _existingModels;
+        private readonly ObservableCollection<AiModel> _configuredModels;
         private readonly List<AiModel> _allModels = new();
         private int _loadVersion;
 
-        public ObservableCollection<AiModel> FilteredModels { get; } = new();
+        public ObservableCollection<ModelEditItemViewModel> FilteredModels { get; } = new();
 
-        public AiModel? AddedModel { get; private set; }
-        public event Action<bool?>? CloseRequested;
+        public event Action? ModelsChanged;
 
         [ObservableProperty]
         private string _modelSearchText = string.Empty;
-
-        [ObservableProperty]
-        private AiModel? _selectedModel;
 
         [ObservableProperty]
         private string _statusMessage = string.Empty;
@@ -29,9 +25,9 @@ namespace GeminiTranslateExplain.ViewModels
         [ObservableProperty]
         private bool _isLoading;
 
-        public ModelAddWindowViewModel(IEnumerable<AiModel> existingModels)
+        public ModelAddWindowViewModel(ObservableCollection<AiModel> configuredModels)
         {
-            _existingModels = existingModels.ToHashSet();
+            _configuredModels = configuredModels;
         }
 
         [RelayCommand]
@@ -42,7 +38,6 @@ namespace GeminiTranslateExplain.ViewModels
             StatusMessage = "モデルを取得しています...";
             _allModels.Clear();
             FilteredModels.Clear();
-            SelectedModel = null;
             ModelSearchText = string.Empty;
 
             try
@@ -51,23 +46,34 @@ namespace GeminiTranslateExplain.ViewModels
                 if (loadVersion != _loadVersion)
                     return;
 
-                _allModels.AddRange(result.Models);
+                foreach (var model in _configuredModels.Concat(result.Models).Distinct())
+                {
+                    _allModels.Add(model);
+                }
+
                 RefreshFilteredModels();
 
+                var statusLines = new List<string>
+                {
+                    $"{result.Models.Count} 件のモデルを取得しました。",
+                    $"登録済み: {_configuredModels.Count} 件"
+                };
+
+                statusLines.AddRange(result.Statuses);
                 if (_allModels.Count == 0)
                 {
-                    StatusMessage = result.Errors.Count == 0
-                        ? "追加できるモデルが見つかりませんでした。"
-                        : string.Join(Environment.NewLine, result.Errors);
+                    statusLines[0] = "利用可能なモデルが見つかりませんでした。";
                 }
-                else if (result.Errors.Count == 0)
+
+                foreach (var error in result.Errors)
                 {
-                    StatusMessage = $"{_allModels.Count} 件のモデルを取得しました。";
+                    if (error.StartsWith("Ollama ", StringComparison.Ordinal))
+                        continue;
+
+                    statusLines.Add(error);
                 }
-                else
-                {
-                    StatusMessage = $"{_allModels.Count} 件のモデルを取得しました。一部の取得に失敗しました: {string.Join(" / ", result.Errors)}";
-                }
+
+                StatusMessage = string.Join(Environment.NewLine, statusLines);
             }
             catch (Exception ex)
             {
@@ -81,51 +87,40 @@ namespace GeminiTranslateExplain.ViewModels
                 if (loadVersion == _loadVersion)
                 {
                     IsLoading = false;
-                    AddModelCommand.NotifyCanExecuteChanged();
                 }
             }
         }
 
-        [RelayCommand(CanExecute = nameof(CanAddModel))]
-        private void AddModel()
+        private void AddModel(AiModel model)
         {
-            if (SelectedModel == null)
+            if (_configuredModels.Contains(model))
                 return;
 
-            AddedModel = SelectedModel.Value;
-            CloseRequested?.Invoke(true);
+            _configuredModels.Add(model);
+            SaveModels();
+            RefreshFilteredModels();
         }
 
-        [RelayCommand]
-        private void Cancel()
+        private void RemoveModel(AiModel model)
         {
-            CloseRequested?.Invoke(false);
+            if (!_configuredModels.Contains(model))
+                return;
+
+            _configuredModels.Remove(model);
+            SaveModels();
+            RefreshFilteredModels();
         }
 
-        private bool CanAddModel()
+        private void SaveModels()
         {
-            if (SelectedModel == null)
-                return false;
-
-            return _allModels.Contains(SelectedModel.Value)
-                && !_existingModels.Contains(SelectedModel.Value);
+            AppConfig.Instance.AIModels = _configuredModels.ToArray();
+            AppConfig.Instance.SaveConfigJson();
+            ModelsChanged?.Invoke();
         }
 
         partial void OnModelSearchTextChanged(string value)
         {
-            if (SelectedModel != null && !string.Equals(value, SelectedModel.Value.Name, StringComparison.Ordinal))
-                SelectedModel = null;
-
             RefreshFilteredModels();
-            AddModelCommand.NotifyCanExecuteChanged();
-        }
-
-        partial void OnSelectedModelChanged(AiModel? value)
-        {
-            if (value != null && !string.Equals(ModelSearchText, value.Value.Name, StringComparison.Ordinal))
-                ModelSearchText = value.Value.Name;
-
-            AddModelCommand.NotifyCanExecuteChanged();
         }
 
         private void RefreshFilteredModels()
@@ -139,13 +134,56 @@ namespace GeminiTranslateExplain.ViewModels
             FilteredModels.Clear();
             foreach (var model in models)
             {
-                FilteredModels.Add(model);
+                FilteredModels.Add(new ModelEditItemViewModel(
+                    model,
+                    _configuredModels.Contains(model),
+                    AddModel,
+                    RemoveModel));
             }
         }
 
         private static string NormalizeModelName(string? name)
         {
             return name?.Trim() ?? string.Empty;
+        }
+    }
+
+    public partial class ModelEditItemViewModel : ObservableObject
+    {
+        private readonly Action<AiModel> _addModel;
+        private readonly Action<AiModel> _removeModel;
+
+        public ModelEditItemViewModel(
+            AiModel model,
+            bool isConfigured,
+            Action<AiModel> addModel,
+            Action<AiModel> removeModel)
+        {
+            Model = model;
+            IsConfigured = isConfigured;
+            _addModel = addModel;
+            _removeModel = removeModel;
+        }
+
+        public AiModel Model { get; }
+
+        public string Name => Model.Name;
+
+        public AiType Type => Model.Type;
+
+        [ObservableProperty]
+        private bool _isConfigured;
+
+        [RelayCommand]
+        private void Add()
+        {
+            _addModel(Model);
+        }
+
+        [RelayCommand]
+        private void Remove()
+        {
+            _removeModel(Model);
         }
     }
 }

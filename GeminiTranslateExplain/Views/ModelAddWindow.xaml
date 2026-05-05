@@ -5,9 +5,9 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Title="モデル追加"
-    Width="560"
-    Height="420"
+    Title="モデル編集"
+    Width="600"
+    Height="460"
     MinWidth="560"
     MinHeight="420"
     ResizeMode="NoResize"
@@ -18,7 +18,6 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <Grid>
@@ -62,59 +61,96 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <TextBlock
+            <Border
                 Grid.Row="0"
-                FontSize="12"
-                Text="{Binding StatusMessage}"
-                TextWrapping="Wrap" />
+                MinHeight="56"
+                Padding="10,8"
+                Background="{DynamicResource MaterialDesignCardBackground}"
+                BorderBrush="{DynamicResource MaterialDesignDivider}"
+                BorderThickness="1">
+                <TextBlock
+                    FontSize="12"
+                    LineHeight="18"
+                    Text="{Binding StatusMessage}"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="Wrap" />
+            </Border>
 
             <ListBox
                 Grid.Row="1"
                 Margin="0,12,0,0"
                 BorderThickness="1"
-                ItemsSource="{Binding FilteredModels}"
-                SelectedItem="{Binding SelectedModel, Mode=TwoWay}">
+                HorizontalContentAlignment="Stretch"
+                ItemsSource="{Binding FilteredModels}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Grid MinHeight="34">
+                        <Grid MinHeight="42" Margin="4,2">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="96" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="40" />
                             </Grid.ColumnDefinitions>
                             <TextBlock
                                 Grid.Column="0"
+                                Margin="4,0,12,0"
                                 VerticalAlignment="Center"
                                 FontSize="14"
+                                FontWeight="SemiBold"
                                 Text="{Binding Name}"
                                 TextTrimming="CharacterEllipsis" />
-                            <TextBlock
+                            <Border
                                 Grid.Column="1"
-                                Margin="12,0,0,0"
+                                MinWidth="64"
+                                Margin="0,0,8,0"
+                                Padding="8,3"
                                 VerticalAlignment="Center"
-                                FontSize="12"
-                                Foreground="{DynamicResource MaterialDesignBodyLight}"
-                                Text="{Binding Type}" />
+                                Background="{DynamicResource MaterialDesignDivider}"
+                                CornerRadius="3">
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    FontSize="11"
+                                    Text="{Binding Type}" />
+                            </Border>
+                            <Button
+                                x:Name="AddButton"
+                                Grid.Column="2"
+                                Width="32"
+                                Height="32"
+                                Command="{Binding AddCommand}"
+                                Style="{StaticResource MaterialDesignIconForegroundButton}"
+                                ToolTip="モデルを追加">
+                                <materialDesign:PackIcon
+                                    Width="18"
+                                    Height="18"
+                                    Kind="Plus" />
+                            </Button>
+                            <Button
+                                x:Name="RemoveButton"
+                                Grid.Column="2"
+                                Width="32"
+                                Height="32"
+                                Command="{Binding RemoveCommand}"
+                                Style="{StaticResource MaterialDesignIconForegroundButton}"
+                                ToolTip="モデルを削除">
+                                <materialDesign:PackIcon
+                                    Width="18"
+                                    Height="18"
+                                    Kind="Delete" />
+                            </Button>
                         </Grid>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding IsConfigured}" Value="True">
+                                <Setter TargetName="AddButton" Property="Visibility" Value="Collapsed" />
+                                <Setter TargetName="RemoveButton" Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsConfigured}" Value="False">
+                                <Setter TargetName="AddButton" Property="Visibility" Value="Visible" />
+                                <Setter TargetName="RemoveButton" Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
         </Grid>
-
-        <StackPanel
-            Grid.Row="3"
-            HorizontalAlignment="Right"
-            Orientation="Horizontal">
-            <Button
-                MinWidth="86"
-                Margin="0,0,8,0"
-                Command="{Binding CancelCommand}"
-                Content="キャンセル"
-                Style="{StaticResource MaterialDesignOutlinedButton}" />
-            <Button
-                MinWidth="86"
-                Command="{Binding AddModelCommand}"
-                Content="追加"
-                Style="{StaticResource MaterialDesignRaisedButton}" />
-        </StackPanel>
     </Grid>
 </Window>

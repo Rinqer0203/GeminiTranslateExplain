@@ -29,10 +29,45 @@ namespace GeminiTranslateExplain.Models
 
         public const string ConfigFileName = "appconfig.json";
 
+        private const string LegacyDefaultSystemInstruction = "入力内容を`入力解釈ルール`に基づいて判別し、それに応じた日本語を`出力フォーマット`に従って出力してください。\r\n\r\n" +
+            "```入力解釈ルール\r\n" +
+            "if english:\r\n" +
+            "    if 文脈を持つ文章の場合:\r\n" +
+            "        日本語として自然で意味が正確に対応する文章に翻訳\r\n" +
+            "    elif 単語 or 略語 or 短い語句:\r\n" +
+            "        翻訳文は作らず、日本語での意味や用法を簡潔に説明\r\n" +
+            "else:\r\n" +
+            "    簡潔な説明\r\n" +
+            "    if 難しい漢字や単語が含まれている:\r\n" +
+            "        読み方や意味も簡潔に説明\r\n" +
+            "```\r\n\r\n" +
+            "# 出力フォーマット\r\n" +
+            "- プレーンテキストのみ\r\n" +
+            "- 原文の反復、判断理由、内部思考は出力しない";
+
+        private const string DefaultSystemInstruction = "以下の入力テキストを日本語に翻訳し、その意味を簡潔に説明してください。\r\n\r\n" +
+            "出力ルール:\r\n" +
+            "- 出力はプレーンテキストのみ\r\n" +
+            "- Markdown記法を使用しない\r\n" +
+            "- 原文を繰り返さない\r\n" +
+            "- 判断理由や内部思考を出力しない\r\n" +
+            "- 前置きや締めの文章を付けない\r\n\r\n" +
+            "出力形式:\r\n" +
+            "翻訳文\r\n\r\n" +
+            "意味：入力テキストが表す内容を簡潔に説明する\r\n\r\n" +
+            "例:\r\n" +
+            "入力: Preferred 2FA method\r\n\r\n" +
+            "推奨される二要素認証（2FA）の方法\r\n\r\n" +
+            "意味：アカウントのログイン時に、パスワードに加えて本人確認を行うための、望ましい認証手段を指します。";
+
         // ここから先はJsonSerializerでシリアライズされるプロパティ
         public string GeminiApiKey { get; set; } = string.Empty;
 
         public string OpenAiApiKey { get; set; } = string.Empty;
+
+        public string OllamaBaseUrl { get; set; } = "http://localhost:11434";
+
+        public string OllamaKeepAlive { get; set; } = "5m";
 
         public WindowType SelectedResultWindowType { get; set; } = WindowType.MainWindow;
 
@@ -52,21 +87,7 @@ namespace GeminiTranslateExplain.Models
 
         public AiModel SelectedAiModel { get; set; }
 
-        public string SystemInstruction { get; set; } = "入力内容を`入力解釈ルール`に基づいて判別し、それに応じた日本語を`出力フォーマット`に従って出力してください。\r\n\r\n" +
-            "```入力解釈ルール\r\n" +
-            "if english:\r\n" +
-            "    if 文脈を持つ文章の場合:\r\n" +
-            "        日本語として自然で意味が正確に対応する文章に翻訳\r\n" +
-            "    elif 単語 or 略語 or 短い語句:\r\n" +
-            "        翻訳文は作らず、日本語での意味や用法を簡潔に説明\r\n" +
-            "else:\r\n" +
-            "    簡潔な説明\r\n" +
-            "    if 難しい漢字や単語が含まれている:\r\n" +
-            "        読み方や意味も簡潔に説明\r\n" +
-            "```\r\n\r\n" +
-            "# 出力フォーマット\r\n" +
-            "- プレーンテキストのみ\r\n" +
-            "- 原文の反復、判断理由、内部思考は出力しない";
+        public string SystemInstruction { get; set; } = DefaultSystemInstruction;
 
         public string CustomSystemInstruction { get; set; } = "以下の単語について説明してください\n";
 
@@ -118,6 +139,8 @@ namespace GeminiTranslateExplain.Models
                 }
             }
             var loadedConfig = config ?? new AppConfig();
+            if (loadedConfig.SystemInstruction == LegacyDefaultSystemInstruction)
+                loadedConfig.SystemInstruction = DefaultSystemInstruction;
 
             if (loadedConfig.AIModels.Length > 0)
             {
@@ -239,6 +262,8 @@ namespace GeminiTranslateExplain.Models
                         profile.Id = Guid.NewGuid().ToString("N");
                     if (string.IsNullOrWhiteSpace(profile.Name))
                         profile.Name = "プロンプト";
+                    if (profile.Name == "デフォルト" && profile.Instruction == LegacyDefaultSystemInstruction)
+                        profile.Instruction = DefaultSystemInstruction;
                 }
             }
             else

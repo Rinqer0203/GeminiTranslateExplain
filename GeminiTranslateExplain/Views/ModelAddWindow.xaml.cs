@@ -15,12 +15,6 @@ namespace GeminiTranslateExplain.Views
             DataContext = viewModel;
             WindowUtilities.ApplyTitleBarTheme(this);
 
-            viewModel.CloseRequested += result =>
-            {
-                DialogResult = result;
-                Close();
-            };
-
             Loaded += (_, _) =>
             {
                 if (viewModel.RefreshModelsCommand.CanExecute(null))
